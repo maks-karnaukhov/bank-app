@@ -1,13 +1,15 @@
-'use client';
+import Providers from "./providers/providers";
 
-import { ReactNode } from 'react';
-import { Provider as ReduxProvider } from 'react-redux';
-import { store } from '@/store/store';
-
-type Props = {
-  children: ReactNode;
-};
-
-export default function Providers({ children }: Props) {
-  return <ReduxProvider store={store}>{children}</ReduxProvider>;
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
 }

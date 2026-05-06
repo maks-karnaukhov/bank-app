@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { transactions } from '../data.js';
-import type { Transaction } from '../data.js';
+import { transactions } from '../data';
+import type { Transaction } from '../data';
 
 const router = Router();
 

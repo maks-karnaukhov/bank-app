@@ -1,9 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 
-import authRoutes from './routers/auth.js';
-import transactionsRoutes from './routers/transactions.js';
-import transferRoutes from './routers/transfer.js';
+import authRoutes from './routers/auth';
+import transactionsRoutes from './routers/transactions';
+import transferRoutes from './routers/transfer';
 
 const app = express();
 

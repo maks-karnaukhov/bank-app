@@ -2,11 +2,10 @@
   "name": "bank-app-backend",
   "version": "1.0.0",
   "description": "",
-  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node --loader ts-node/esm src/server.ts"
+    "dev": "ts-node-dev src/server.ts"
   },
   "keywords": [],
   "author": "",
