@@ -1,22 +1,13 @@
-import { Router } from 'express';
+import { Router } from "express";
+
+import {
+  register,
+  login,
+} from "../controllers/authController";
 
 const router = Router();
 
-// временный “юзер”
-const mockUser = {
-  email: 'test@example.com',
-  password: '123456',
-  token: 'fake-jwt-token'
-};
-
-router.post('/login', (req, res) => {
-  const { email, password } = req.body;
-
-  if (email === mockUser.email && password === mockUser.password) {
-    res.json({ success: true, token: mockUser.token });
-  } else {
-    res.status(401).json({ success: false, message: 'Invalid credentials' });
-  }
-});
+router.post("/register", register);
+router.post("/login", login);
 
 export default router;
