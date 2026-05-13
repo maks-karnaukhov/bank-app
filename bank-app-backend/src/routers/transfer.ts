@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { transactions } from '../data';
 import type { Transaction } from '../data';
+import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = Router();
 
-router.post('/', (req, res) => {
+router.post('/', authMiddleware, (req, res) => {
   const { from, to, amount } = req.body;
 
   if (!from || !to || !amount) {

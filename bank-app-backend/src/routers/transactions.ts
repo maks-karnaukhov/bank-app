@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = Router();
 
@@ -8,8 +9,8 @@ let transactions = [
   { id: 2, from: 'Account B', to: 'Account A', amount: 50, date: '2026-04-08' }
 ];
 
-router.get('/', (req, res) => {
+router.get('/', authMiddleware, (req, res) => {
   res.json(transactions);
-});
+})
 
 export default router;
