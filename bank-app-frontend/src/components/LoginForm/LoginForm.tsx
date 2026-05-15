@@ -48,9 +48,18 @@ export default function LoginForm() {
         required
       />
 
-      <button type="submit" disabled={loading}>
-        {loading ? "Logging in..." : "Login"}
+      <button type="submit" disabled={loading} className={styles.submitButton}>
+        {loading ? "Please wait..." : "Sign in"}
       </button>
+      <button type="button" className={styles.linkA}>
+        Forgot password?
+      </button>
+      <a
+        className={styles.linkA}
+        href="/register"
+      >
+        Create account
+      </a>
 
       {error && <p className={styles.error}>{error}</p>}
     </form>
