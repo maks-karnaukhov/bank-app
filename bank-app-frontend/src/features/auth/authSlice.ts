@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { loginUser } from "@/services/api";
+import { loginUser, registerUser } from "@/services/api";
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -21,6 +21,13 @@ export const loginUserThunk = createAsyncThunk(
   "auth/loginUser",
   async (credentials: { email: string; password: string }) => {
     const response = await loginUser(credentials);
+    return response.data;
+  }
+);
+export const registerUserThunk = createAsyncThunk(
+  "auth/registerUser",
+  async (credentials: { email: string; password: string }) => {
+    const response = await registerUser(credentials);
     return response.data;
   }
 );
@@ -53,10 +60,27 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.token = action.payload.token;
+
+        localStorage.setItem("token", action.payload.token);
       })
       .addCase(loginUserThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Login failed";
+      })
+      .addCase(registerUserThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerUserThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.token = action.payload.token;
+
+        localStorage.setItem("token", action.payload.token);
+      })
+      .addCase(registerUserThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Register failed";
       });
   },
 });

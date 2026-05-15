@@ -3,10 +3,11 @@
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { RootState } from "@/store/store";
-import LoginForm from "@/components/LoginForm/LoginForm";
 
-export default function LoginPage() {
+import type { RootState } from "@/store/store";
+import RegisterForm from "@/components/RegisterForm/RegisterForm";
+
+export default function RegisterPage() {
   const router = useRouter();
 
   const { isAuthenticated, initialized } = useSelector(
@@ -28,9 +29,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div>
-      <h1>Login</h1>
-      <LoginForm />
+    <div style={{ maxWidth: 400, margin: "100px auto" }}>
+      <h1>Register</h1>
+      <RegisterForm />
     </div>
   );
 }

@@ -1,13 +1,13 @@
 "use client";
 
-import styles from "./LoginForm.module.css";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { loginUserThunk } from "@/features/auth/authSlice";
+
+import { registerUserThunk } from "@/features/auth/authSlice";
 import type { AppDispatch, RootState } from "@/store/store";
 
-export default function LoginForm() {
+export default function RegisterForm() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
 
@@ -22,16 +22,16 @@ export default function LoginForm() {
     e.preventDefault();
 
     const result = await dispatch(
-      loginUserThunk({ email, password })
+      registerUserThunk({ email, password })
     );
 
-    if (loginUserThunk.fulfilled.match(result)) {
+    if (registerUserThunk.fulfilled.match(result)) {
       router.replace("/dashboard");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
+    <form onSubmit={handleSubmit}>
       <input
         type="email"
         placeholder="Email"
@@ -49,10 +49,10 @@ export default function LoginForm() {
       />
 
       <button type="submit" disabled={loading}>
-        {loading ? "Logging in..." : "Login"}
+        {loading ? "Creating..." : "Register"}
       </button>
 
-      {error && <p className={styles.error}>{error}</p>}
+      {error && <p>{error}</p>}
     </form>
   );
 }
