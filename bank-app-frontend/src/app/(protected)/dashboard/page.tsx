@@ -1,6 +1,33 @@
+"use client";
+
 import styles from "./Dashboard.module.css";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+import {
+  fetchTransactionsThunk,
+} from "@/features/transactions/transactionsSlice";
+
+import type {
+  AppDispatch,
+  RootState,
+} from "@/store/store";
+
 
 export default function DashboardPage() {
+  const dispatch = useDispatch<AppDispatch>();
+
+  const {
+    transactions,
+    loading,
+    error,
+  } = useSelector(
+    (state: RootState) => state.transactions
+  );
+
+  useEffect(() => {
+    dispatch(fetchTransactionsThunk());
+  }, [dispatch]);
   return (
     <main className={styles.container}>
       <section className={styles.top}>
@@ -52,53 +79,40 @@ export default function DashboardPage() {
           <button>See all</button>
         </div>
 
-        <div className={styles.transactionCard}>
-          <div>
-            <p className={styles.transactionTitle}>
-              Netflix Subscription
+        {loading && (
+          <p>Loading transactions...</p>
+        )}
+
+        {error && (
+          <p>{error}</p>
+        )}
+
+        {transactions.map((transaction) => (
+          <div
+            key={transaction.id}
+            className={styles.transactionCard}
+          >
+            <div>
+              <p className={styles.transactionTitle}>
+                {transaction.from} → {transaction.to}
+              </p>
+
+              <span className={styles.transactionDate}>
+                {transaction.date}
+              </span>
+            </div>
+
+            <p
+              className={
+                transaction.amount > 0
+                  ? styles.income
+                  : styles.expense
+              }
+            >
+              ${transaction.amount}
             </p>
-
-            <span className={styles.transactionDate}>
-              Today
-            </span>
           </div>
-
-          <p className={styles.expense}>
-            -$12.99
-          </p>
-        </div>
-
-        <div className={styles.transactionCard}>
-          <div>
-            <p className={styles.transactionTitle}>
-              Salary
-            </p>
-
-            <span className={styles.transactionDate}>
-              Yesterday
-            </span>
-          </div>
-
-          <p className={styles.income}>
-            +$2,400
-          </p>
-        </div>
-
-        <div className={styles.transactionCard}>
-          <div>
-            <p className={styles.transactionTitle}>
-              Amazon Purchase
-            </p>
-
-            <span className={styles.transactionDate}>
-              May 10
-            </span>
-          </div>
-
-          <p className={styles.expense}>
-            -$84.50
-          </p>
-        </div>
+        ))}
       </section>
     </main>
   );

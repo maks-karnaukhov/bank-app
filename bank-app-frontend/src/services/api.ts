@@ -1,19 +1,44 @@
-import axios from 'axios';
+import axios from "axios";
 
 export const api = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: "http://localhost:5000",
 });
 
-export const loginUser = (credentials: { email: string; password: string }) =>
-  api.post('/auth/login', credentials);
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
 
-export const registerUser = (credentials: {
-  email: string;
-  password: string;
-}) =>
+  if (token) {
+    config.headers.Authorization =
+      `Bearer ${token}`;
+  }
+
+  return config;
+});
+
+export const loginUser = (
+  credentials: {
+    email: string;
+    password: string;
+  }
+) =>
+  api.post("/auth/login", credentials);
+
+export const registerUser = (
+  credentials: {
+    email: string;
+    password: string;
+  }
+) =>
   api.post("/auth/register", credentials);
 
-export const fetchTransactions = () => api.get('/transactions');
+export const fetchTransactions = () =>
+  api.get("/transactions");
 
-export const createTransaction = (data: { from: string; to: string; amount: number }) =>
-  api.post('/transfer', data);
+export const createTransaction = (
+  data: {
+    from: string;
+    to: string;
+    amount: number;
+  }
+) =>
+  api.post("/transfer", data);
