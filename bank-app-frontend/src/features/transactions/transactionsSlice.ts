@@ -24,8 +24,12 @@ export const fetchTransactionsThunk = createAsyncThunk(
 
 export const createTransactionThunk = createAsyncThunk(
   'transactions/createTransaction',
-  async (data: { from: string; to: string; amount: number }) => {
+  async (data: {
+    to: string;
+    amount: number;
+  }) => {
     const response = await createTransaction(data);
+
     return response.data.transaction;
   }
 );

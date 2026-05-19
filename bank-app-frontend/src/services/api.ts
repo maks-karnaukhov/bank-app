@@ -36,7 +36,6 @@ export const fetchTransactions = () =>
 
 export const createTransaction = (
   data: {
-    from: string;
     to: string;
     amount: number;
   }

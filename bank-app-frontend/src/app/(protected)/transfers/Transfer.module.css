@@ -1,0 +1,142 @@
+.container {
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: #f4f7fb;
+}
+
+.card {
+  width: 100%;
+  max-width: 520px;
+
+  background: white;
+
+  border-radius: 28px;
+
+  padding: 40px;
+
+  box-shadow:
+    0 20px 40px rgba(0,0,0,0.06);
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+
+  color: #111827;
+
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: #6b7280;
+
+  margin-bottom: 32px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+.form input {
+  width: 100%;
+
+  border: 1px solid #d1d5db;
+
+  border-radius: 14px;
+
+  padding: 16px;
+
+  font-size: 15px;
+
+  outline: none;
+
+  transition: 0.2s;
+}
+
+.form input:focus {
+  border-color: #2563eb;
+
+  box-shadow:
+    0 0 0 4px rgba(37,99,235,0.1);
+}
+
+.form button {
+  border: none;
+
+  background: #2563eb;
+  color: white;
+
+  padding: 16px;
+
+  border-radius: 14px;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.form button:hover {
+  background: #1d4ed8;
+}
+
+.form button:disabled {
+  opacity: 0.7;
+
+  cursor: not-allowed;
+}
+.accountBox {
+  background: #f9fafb;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 18px;
+
+  padding: 18px;
+}
+
+.accountLabel {
+  display: block;
+
+  font-size: 13px;
+
+  color: #6b7280;
+
+  margin-bottom: 8px;
+}
+
+.accountName {
+  font-size: 18px;
+  font-weight: 700;
+
+  color: #111827;
+
+  margin-bottom: 6px;
+}
+
+.accountBalance {
+  color: #2563eb;
+
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 28px 20px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+}
