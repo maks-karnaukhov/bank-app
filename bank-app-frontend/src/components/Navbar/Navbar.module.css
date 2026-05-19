@@ -1,5 +1,52 @@
 .navbar {
-    display: flex; 
-    gap: 20px;
-    padding: 20px;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 20px 32px;
+
+  background: white;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  position: sticky;
+  top: 0;
+
+  z-index: 100;
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.links a {
+  text-decoration: none;
+
+  color: #374151;
+
+  font-weight: 500;
+
+  transition: 0.2s;
+}
+
+.links a:hover {
+  color: #2563eb;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 16px 20px;
+  }
+
+  .links {
+    gap: 16px;
+  }
+
+  .links a {
+    font-size: 14px;
+  }
 }
