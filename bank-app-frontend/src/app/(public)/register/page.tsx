@@ -7,6 +7,9 @@ import { useRouter } from "next/navigation";
 import type { RootState } from "@/store/store";
 import RegisterForm from "@/components/RegisterForm/RegisterForm";
 
+import styles from "./RegisterPage.module.css";
+import Logo from "@/components/Logo/Logo";
+
 export default function RegisterPage() {
   const router = useRouter();
 
@@ -20,18 +23,22 @@ export default function RegisterPage() {
     }
   }, [isAuthenticated, router]);
 
-  if (!initialized) {
-    return null;
-  }
-
-  if (isAuthenticated) {
-    return null;
-  }
+  if (!initialized) return null;
+  if (isAuthenticated) return null;
 
   return (
-    <div style={{ maxWidth: 400, margin: "100px auto" }}>
-      <h1>Register</h1>
-      <RegisterForm />
-    </div>
+    <main className={styles.container}>
+      <div className={styles.card}>
+        <Logo />
+
+        <h1 className={styles.title}>Create account</h1>
+
+        <p className={styles.subtitle}>
+          Start using your banking dashboard
+        </p>
+
+        <RegisterForm />
+      </div>
+    </main>
   );
 }

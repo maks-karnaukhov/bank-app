@@ -1,5 +1,6 @@
 "use client";
 
+import styles from "./RegisterForm.module.css";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
@@ -18,6 +19,9 @@ export default function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const isDisabled =
+    loading || !email.trim() || !password.trim();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -31,12 +35,13 @@ export default function RegisterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className={styles.form}>
       <input
         type="email"
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        autoComplete="email"
         required
       />
 
@@ -45,14 +50,21 @@ export default function RegisterForm() {
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        autoComplete="new-password"
         required
       />
 
-      <button type="submit" disabled={loading}>
-        {loading ? "Creating..." : "Register"}
+      <button type="submit" disabled={isDisabled} className={styles.submitButton}>
+        {loading ? "Creating account..." : "Create account"}
       </button>
+      <a
+        className={styles.linkA}
+        href="/login"
+      >
+        I already have an account
+      </a>
 
-      {error && <p>{error}</p>}
+      {error && <p className={styles.error}>{error}</p>}
     </form>
   );
 }
