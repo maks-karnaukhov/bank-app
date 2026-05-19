@@ -23,7 +23,6 @@
   color: #6b7280;
 }
 
-
 .balanceCard {
   background: linear-gradient(
     135deg,
@@ -70,6 +69,123 @@
   font-size: 14px;
 }
 
+.actions {
+  display: flex;
+  gap: 20px;
+
+  flex-wrap: wrap;
+
+  margin-bottom: 36px;
+}
+
+.actionButton {
+  border: none;
+
+  background: white;
+
+  padding: 18px 24px;
+
+  border-radius: 18px;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  color: #111827;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 10px 25px rgba(0,0,0,0.05);
+
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.actionButton:hover {
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 14px 30px rgba(0,0,0,0.08);
+}
+
+.transactions {
+  background: white;
+
+  border-radius: 24px;
+
+  padding: 28px;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.05);
+}
+
+.transactionsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 24px;
+}
+
+.transactionsHeader h3 {
+  font-size: 22px;
+
+  color: #111827;
+}
+
+.transactionsHeader button {
+  border: none;
+
+  background: transparent;
+
+  color: #2563eb;
+
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.transactionCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 18px 0;
+
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.transactionCard:last-child {
+  border-bottom: none;
+}
+
+.transactionTitle {
+  font-weight: 600;
+
+  color: #111827;
+
+  margin-bottom: 4px;
+}
+
+.transactionDate {
+  font-size: 14px;
+
+  color: #6b7280;
+}
+
+.expense {
+  color: #dc2626;
+
+  font-weight: 700;
+}
+
+.income {
+  color: #16a34a;
+
+  font-weight: 700;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 20px;
@@ -78,6 +194,7 @@
   .balanceCard {
     flex-direction: column;
     align-items: flex-start;
+
     gap: 20px;
   }
 
@@ -87,5 +204,13 @@
 
   .title {
     font-size: 28px;
+  }
+
+  .transactions {
+    padding: 22px;
+  }
+
+  .transactionCard {
+    gap: 12px;
   }
 }
