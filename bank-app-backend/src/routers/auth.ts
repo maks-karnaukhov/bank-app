@@ -1,20 +1,17 @@
-import { Router } from "express";
+import express from "express";
 
 import {
-  //register,
-  //login,
+  register,
+  verifyEmail,
 } from "../controllers/authController";
-import { authMiddleware } from "../middleware/authMiddleware";
 
-const router = Router();
+const router = express.Router();
 
-//router.post("/register", register);
-//router.post("/login", login);
-
-router.get("/me", authMiddleware, (req: any, res) => {
-  res.json({
-    success: true,
-    userId: req.userId,
+router.post("/register", register);
+router.post("/verify-email", verifyEmail);
+router.post("/login", (req, res) => {
+  res.status(200).json({
+    message: "Login not implemented yet",
   });
 });
 
