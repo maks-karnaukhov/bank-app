@@ -1,86 +1,64 @@
-import { Request, Response } from "express";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-
+import bcrypt from "bcrypt";
 import User from "../models/User";
+import VerificationCode from "../models/VerificationCode";
+import { Request, Response } from "express";
+
+function generateCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const {
+      firstName,
+      lastName,
+      middleName,
+      phone,
+      email,
+      password,
+    } = req.body;
 
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
       return res.status(400).json({
-        success: false,
         message: "User already exists",
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 10);
 
     const user = await User.create({
+      firstName,
+      lastName,
+      middleName,
+      phone,
       email,
-      password: hashedPassword,
+      passwordHash,
+      isEmailVerified: false,
     });
 
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET as string,
-      { expiresIn: "7d" }
+    const code = generateCode();
+
+    const expiresAt = new Date(
+      Date.now() + 10 * 60 * 1000
     );
 
-    res.status(201).json({
-      success: true,
-      token,
+    await VerificationCode.create({
+      userId: user._id,
+      email,
+      code,
+      expiresAt,
+      used: false,
+    });
+
+    console.log("Verification code:", code);
+
+    return res.status(201).json({
+      message: "User created. Verify email.",
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
-};
-
-export const login = async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials",
-      });
-    }
-
-    const isMatch = await bcrypt.compare(
-      password,
-      user.password
-    );
-
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials",
-      });
-    }
-
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET as string,
-      { expiresIn: "7d" }
-    );
-
-    res.json({
-      success: true,
-      token,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
+    return res.status(500).json({
       message: "Server error",
     });
   }
