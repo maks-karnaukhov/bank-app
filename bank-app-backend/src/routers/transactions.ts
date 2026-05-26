@@ -1,9 +1,8 @@
 import express from "express";
 import { authMiddleware } from "../middleware/authMiddleware";
-import {
-  createTransfer,
-  getTransactions,
-} from "../controllers/transactionController";
+
+import { getTransactions } from "../controllers/transactionController";
+import { createTransfer } from "../controllers/transferController";
 
 const router = express.Router();
 
