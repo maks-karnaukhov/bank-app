@@ -65,7 +65,11 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
+    console.log("LOGIN BODY:", req.body);
+
     const user = await User.findOne({ email });
+
+    console.log("USER FOUND:", user);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -96,6 +100,7 @@ export const login = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    console.error("LOGIN ERROR:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };

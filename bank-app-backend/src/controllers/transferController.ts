@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import Transaction from "../models/Transaction";
 
 export const createTransfer = async (req: Request, res: Response) => {
+  console.log("BODY:", req.body);
+  console.log("USER ID:", (req as any).userId);
   try {
     const { to, amount } = req.body;
 
