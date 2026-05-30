@@ -1,16 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 
 import type { RootState } from "@/store/store";
 import RegisterForm from "@/components/RegisterForm/RegisterForm";
+import OTPModal from "@/components/OTPModal/OTPModal";
 
 import styles from "./RegisterPage.module.css";
 import Logo from "@/components/Logo/Logo";
 
 export default function RegisterPage() {
+  const [otpOpen, setOtpOpen] = useState(false);
+  const [email, setEmail] = useState("");
   const router = useRouter();
 
   const { isAuthenticated, initialized } = useSelector(
@@ -37,7 +40,19 @@ export default function RegisterPage() {
           Start using your banking dashboard
         </p>
 
-        <RegisterForm />
+        <RegisterForm
+          onRegisterSuccess={(email) => {
+            setEmail(email);
+            setOtpOpen(true);
+          }}
+        />
+        {otpOpen && (
+          <OTPModal
+            email={email}
+            onSuccess={() => router.push("/login")}
+            onClose={() => setOtpOpen(false)}
+          />
+        )}
       </div>
     </main>
   );

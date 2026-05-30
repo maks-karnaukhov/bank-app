@@ -1,77 +1,66 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .form input {
   width: 100%;
-
-  padding: 14px 16px;
-
+  padding: 13px 14px;
   border-radius: 12px;
   border: 1px solid #d1d5db;
-
-  font-size: 15px;
-
-  transition: 0.2s;
+  font-size: 14px;
+  transition: all 0.15s ease;
+  background: #fff;
 }
 
 .form input:focus {
   outline: none;
-
   border-color: #2563eb;
-
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .submitButton {
   width: 100%;
-
   border: none;
   border-radius: 12px;
-
-  padding: 14px;
-
+  padding: 13px;
   background: #2563eb;
   color: white;
-
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-
   cursor: pointer;
-
-  transition: 0.2s;
+  transition: 0.15s ease;
 }
 
 .submitButton:hover {
   background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.2);
 }
 
 .submitButton:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
 .error {
-  padding: 12px;
-
+  padding: 10px 12px;
   border-radius: 10px;
-
   background: #fef2f2;
   color: #dc2626;
-
-  font-size: 14px;
+  font-size: 13px;
 }
+
 .linkA {
   background: none;
   border: none;
-  text-decoration: none;
-  color: #2563eb;
   font-size: 13px;
+  color: #2563eb;
   cursor: pointer;
-  padding: 0;
   text-align: center;
+  margin-top: 4px;
 }
 
 .linkA:hover {

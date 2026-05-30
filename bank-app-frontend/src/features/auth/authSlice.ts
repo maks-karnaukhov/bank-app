@@ -26,8 +26,14 @@ export const loginUserThunk = createAsyncThunk(
 );
 export const registerUserThunk = createAsyncThunk(
   "auth/registerUser",
-  async (credentials: { email: string; password: string }) => {
-    const response = await registerUser(credentials);
+  async (data: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    email: string;
+    password: string;
+  }) => {
+    const response = await registerUser(data);
     return response.data;
   }
 );
@@ -71,12 +77,9 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(registerUserThunk.fulfilled, (state, action) => {
+      .addCase(registerUserThunk.fulfilled, (state) => {
         state.loading = false;
-        state.isAuthenticated = true;
-        state.token = action.payload.token;
-
-        localStorage.setItem("token", action.payload.token);
+        state.error = null;
       })
       .addCase(registerUserThunk.rejected, (state, action) => {
         state.loading = false;

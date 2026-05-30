@@ -23,13 +23,13 @@ export const loginUser = (
 ) =>
   api.post("/auth/login", credentials);
 
-export const registerUser = (
-  credentials: {
-    email: string;
-    password: string;
-  }
-) =>
-  api.post("/auth/register", credentials);
+export const registerUser = (data: {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  password: string;
+}) => api.post("/auth/register", data);
 
 export const fetchTransactions = () =>
   api.get("/transactions");
