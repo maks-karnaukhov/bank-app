@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import styles from "./LoginForm.module.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
@@ -9,38 +10,62 @@ import { loginUserThunk } from "@/features/auth/authSlice";
 import type { AppDispatch, RootState } from "@/store/store";
 import { loginSchema } from "@/validation/LoginSchema";
 import InfoTooltip from "../InfoTooltip/InfoTooltip";
+import { useState } from "react";
 
 export default function LoginForm() {
+  const [authError, setAuthError] = useState<string | null>(null);
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
 
-  const { loading, error } = useSelector(
+  const { loading } = useSelector(
     (state: RootState) => state.auth
   );
+
+  const hasAuthError = !!authError;
 
   return (
     <Formik
       initialValues={{ email: "", password: "" }}
       validationSchema={loginSchema}
       validateOnMount
-      onSubmit={async (values) => {
+      onSubmit={async (values, { setSubmitting }) => {
+        setAuthError(null);
+
         const result = await dispatch(loginUserThunk(values));
+
+        setSubmitting(false);
 
         if (loginUserThunk.fulfilled.match(result)) {
           router.replace("/dashboard");
+          return;
         }
+
+        setAuthError("Invalid email or password");
       }}
     >
-      {({ dirty, isValid, touched, errors }) => (
+      {({
+        isValid,
+        touched,
+        errors,
+        setFieldValue,
+        setFieldTouched,
+      }) => (
         <Form className={styles.form}>
           <div className={styles.field}>
             <Field
               name="email"
               type="email"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setAuthError(null);
+                setFieldValue("email", e.target.value);
+              }}
               placeholder="Email"
-              className={`${styles.input} ${
-                touched.email && errors.email ? styles.inputError : ""
-              }`}
+              className={clsx(
+                styles.input,
+                touched.email && errors.email && styles.inputError,
+                hasAuthError && styles.inputError
+              )}
+              onBlur={() => setFieldTouched("email", true)}
             />
             <InfoTooltip
               title="Email format"
@@ -52,28 +77,34 @@ export default function LoginForm() {
                   • 1 special character
                 </>
               }
-              isError={Boolean(touched.email && errors.email)}
+              isError={Boolean(touched.email && errors.email) || hasAuthError}
             />
           </div>
+          <Field
+            name="password"
+            type="password"
+            placeholder="Password"
+            className={clsx(
+              styles.input,
+              touched.password && errors.password && styles.inputError,
+              hasAuthError && styles.inputError
+            )}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setAuthError(null);
+              setFieldValue("password", e.target.value);
+            }}
+            onBlur={() => setFieldTouched("password", true)}
+          />
 
-          <div className={styles.field}>
-            <Field
-              name="password"
-              type="password"
-              placeholder="Password"
-              className={`${styles.input} ${
-                touched.password && errors.password
-                  ? styles.inputError
-                  : ""
-              }`}
-            />
-          </div>
-
-          {error && <p className={styles.error}>{error}</p>}
+          {authError && (
+            <p className={styles.error}>
+              {authError}
+            </p>
+          )}
 
           <button
             type="submit"
-            disabled={loading || !dirty || !isValid}
+            disabled={loading || !isValid}
             className={styles.submitButton}
           >
             {loading ? "Please wait..." : "Sign in"}
