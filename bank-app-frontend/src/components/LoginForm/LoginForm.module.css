@@ -4,25 +4,41 @@
   gap: 16px;
 }
 
-.form input {
+/* INPUT */
+.input {
   width: 100%;
   box-sizing: border-box;
+
   padding: 14px 16px;
+
   border-radius: 12px;
   border: 1px solid #d1d5db;
+
   font-size: 15px;
+
   transition: 0.2s;
+  background: #fff;
 }
 
-.form input:focus {
+/* FOCUS */
+.input:focus {
   outline: none;
 
   border-color: #2563eb;
 
-  box-shadow:
-    0 0 0 4px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
+/* ERROR STATE */
+.inputError {
+  border-color: #dc2626;
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+}
+
+/* SUBMIT BUTTON */
 .submitButton {
   width: 100%;
 
@@ -44,13 +60,16 @@
 
 .submitButton:hover {
   background: #1d4ed8;
+  transform: translateY(-1px);
 }
 
 .submitButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+  transform: none;
 }
 
+/* ERROR TEXT */
 .error {
   padding: 12px;
 
@@ -62,14 +81,21 @@
   font-size: 14px;
 }
 
+/* LINKS */
 .linkA {
   background: none;
   border: none;
+
   text-decoration: none;
+
   color: #2563eb;
+
   font-size: 13px;
+
   cursor: pointer;
+
   padding: 0;
+
   text-align: center;
 }
 
