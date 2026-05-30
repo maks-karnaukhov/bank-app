@@ -3,7 +3,7 @@
 import styles from "./LoginForm.module.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form, Field } from "formik";
 
 import { loginUserThunk } from "@/features/auth/authSlice";
 import type { AppDispatch, RootState } from "@/store/store";
@@ -52,10 +52,11 @@ export default function LoginForm() {
                   • 1 special character
                 </>
               }
+              isError={Boolean(touched.email && errors.email)}
             />
           </div>
 
-          <div>
+          <div className={styles.field}>
             <Field
               name="password"
               type="password"
@@ -65,11 +66,6 @@ export default function LoginForm() {
                   ? styles.inputError
                   : ""
               }`}
-            />
-            <ErrorMessage
-              name="password"
-              component="div"
-              className={styles.error}
             />
           </div>
 
