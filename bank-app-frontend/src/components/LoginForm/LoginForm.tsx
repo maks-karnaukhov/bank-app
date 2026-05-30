@@ -8,6 +8,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import { loginUserThunk } from "@/features/auth/authSlice";
 import type { AppDispatch, RootState } from "@/store/store";
 import { loginSchema } from "@/validation/LoginSchema";
+import InfoTooltip from "../InfoTooltip/InfoTooltip";
 
 export default function LoginForm() {
   const dispatch = useDispatch<AppDispatch>();
@@ -32,7 +33,7 @@ export default function LoginForm() {
     >
       {({ dirty, isValid, touched, errors }) => (
         <Form className={styles.form}>
-          <div>
+          <div className={styles.field}>
             <Field
               name="email"
               type="email"
@@ -41,10 +42,16 @@ export default function LoginForm() {
                 touched.email && errors.email ? styles.inputError : ""
               }`}
             />
-            <ErrorMessage
-              name="email"
-              component="div"
-              className={styles.error}
+            <InfoTooltip
+              title="Email format"
+              content={
+                <>
+                  • At least 8 characters<br />
+                  • 1 uppercase letter<br />
+                  • 1 lowercase letter<br />
+                  • 1 special character
+                </>
+              }
             />
           </div>
 

@@ -1,0 +1,70 @@
+.wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 12px;
+}
+
+.icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid #2563eb;
+  color: #2563eb;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.tooltip {
+  position: absolute;
+  top: 28px;
+  right: 0;
+
+  width: 260px;
+
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+
+  padding: 14px;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+
+  z-index: 50;
+}
+
+.title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.content {
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+.close {
+  margin-top: 10px;
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 13px;
+}

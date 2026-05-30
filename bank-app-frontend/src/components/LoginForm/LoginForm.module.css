@@ -4,7 +4,6 @@
   gap: 16px;
 }
 
-/* INPUT */
 .input {
   width: 100%;
   box-sizing: border-box;
@@ -18,9 +17,9 @@
 
   transition: 0.2s;
   background: #fff;
+  padding-right: 42px;
 }
 
-/* FOCUS */
 .input:focus {
   outline: none;
 
@@ -29,7 +28,6 @@
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
-/* ERROR STATE */
 .inputError {
   border-color: #dc2626;
 }
@@ -38,7 +36,6 @@
   box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
 }
 
-/* SUBMIT BUTTON */
 .submitButton {
   width: 100%;
 
@@ -69,7 +66,6 @@
   transform: none;
 }
 
-/* ERROR TEXT */
 .error {
   padding: 12px;
 
@@ -81,7 +77,6 @@
   font-size: 14px;
 }
 
-/* LINKS */
 .linkA {
   background: none;
   border: none;
@@ -101,4 +96,8 @@
 
 .linkA:hover {
   text-decoration: underline;
+}
+.field {
+  position: relative;
+  width: 100%;
 }
