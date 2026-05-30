@@ -5,3 +5,10 @@ export interface Transactions {
   amount: number;
   date: string;
 }
+export interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+}

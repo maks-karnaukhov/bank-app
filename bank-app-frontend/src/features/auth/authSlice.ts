@@ -1,5 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { loginUser, registerUser } from "@/services/api";
+import { mapAuthError } from "@/services/auth/mapAuthError";
+import { AuthErrorCode } from "@/services/auth/authErrors";
+import { User } from "@/types/types";
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -24,17 +27,28 @@ export const loginUserThunk = createAsyncThunk(
     return response.data;
   }
 );
-export const registerUserThunk = createAsyncThunk(
-  "auth/registerUser",
-  async (data: {
+export const registerUserThunk = createAsyncThunk<
+  User,
+  {
     firstName: string;
     lastName: string;
     phone: string;
     email: string;
     password: string;
-  }) => {
-    const response = await registerUser(data);
-    return response.data;
+  },
+  {
+    rejectValue: AuthErrorCode;
+  }
+>(
+  "auth/registerUser",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await registerUser(data);
+      return response.data;
+    } catch (error) {
+      const code = mapAuthError(error);
+      return rejectWithValue(code);
+    }
   }
 );
 
@@ -71,7 +85,7 @@ const authSlice = createSlice({
       })
       .addCase(loginUserThunk.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || "Login failed";
+        state.error = mapAuthError(action.error);
       })
       .addCase(registerUserThunk.pending, (state) => {
         state.loading = true;
@@ -83,7 +97,7 @@ const authSlice = createSlice({
       })
       .addCase(registerUserThunk.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || "Register failed";
+        state.error = action.payload || "SERVER_ERROR";
       });
   },
 });

@@ -1,0 +1,31 @@
+import { AuthErrorCode } from "./authErrors";
+
+type ApiError = {
+  response?: {
+    status?: number;
+    data?: {
+      message?: string;
+    };
+  };
+};
+
+export function mapAuthError(error: unknown): AuthErrorCode {
+  const err = error as ApiError;
+
+  const status = err.response?.status;
+  const message = err.response?.data?.message;
+
+  if (status === 400 && message === "User already exists") {
+    return AuthErrorCode.EMAIL_ALREADY_EXISTS;
+  }
+
+  if (status === 401) {
+    return AuthErrorCode.INVALID_CREDENTIALS;
+  }
+
+  if (status === 404) {
+    return AuthErrorCode.USER_NOT_FOUND;
+  }
+
+  return AuthErrorCode.SERVER_ERROR;
+}
