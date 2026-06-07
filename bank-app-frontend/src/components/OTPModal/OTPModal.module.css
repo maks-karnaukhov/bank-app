@@ -39,11 +39,13 @@
   color: white;
   border: none;
   cursor: pointer;
+  margin-top: 15px;
 }
 
 .error {
   color: red;
-  font-size: 13px;
+  font-size: 16px;
+  margin-top: 15px;
 }
 
 .close {
@@ -52,4 +54,35 @@
   border: none;
   color: gray;
   cursor: pointer;
+}
+.attempts {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  text-align: center;
+}
+.timer {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.resendButton {
+  width: 100%;
+  color: white;
+  border: none;
+  cursor: pointer;
+
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.resendButton:hover {
+  text-decoration: underline;
 }
