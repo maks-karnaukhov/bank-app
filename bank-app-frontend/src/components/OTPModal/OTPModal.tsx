@@ -1,9 +1,8 @@
 "use client";
 
-import axios from "axios";
-import { useEffect, useState } from "react";
+import OTPBlockedModal from "../OTPBlockedModal/OTPBlockedModal";
+import { useOtpFlow } from "./useOtpFlow";
 import styles from "./OTPModal.module.css";
-import { api } from "@/services/api";
 
 interface IProps {
   email: string;
@@ -12,127 +11,61 @@ interface IProps {
 }
 
 export default function OTPModal({ email, onSuccess, onClose }: IProps) {
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [attemptsLeft, setAttemptsLeft] = useState(3);
-  const [secondsLeft, setSecondsLeft] = useState(60);
-  const [timerKey, setTimerKey] = useState(0);
+  const otp = useOtpFlow(email, onSuccess);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timerKey]);
-
-  const handleChange = (value: string, index: number) => {
-    if (!/^\d*$/.test(value)) return;
-
-    const newCode = [...code];
-    newCode[index] = value.slice(-1);
-    setCode(newCode);
-
-    const next = document.getElementById(`otp-${index + 1}`);
-    if (value && next) (next as HTMLInputElement).focus();
-  };
-
-  const handleSubmit = async () => {
-    const fullCode = code.join("");
-
-    if (fullCode.length !== 6) return;
-
-    try {
-      setLoading(true);
-      setError("");
-
-      await api.post("/auth/verify-email", {
-        email,
-        code: fullCode,
-      });
-
-      onSuccess();
-    } catch (err: unknown) {
-        if (axios.isAxiosError(err)) {
-          setError(err.response?.data?.message || "Invalid code");
-
-          if (err.response?.status === 400) {
-            setAttemptsLeft((prev) => Math.max(prev - 1, 0));
-          }
-        } else {
-          setError("Something went wrong");
-        }
-      } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResend = () => {
-    setSecondsLeft(60);
-    setCode(["", "", "", "", "", ""]);
-    setError("");
-    setTimerKey((prev) => prev + 1);
-  };
+  if (otp.status === "BLOCKED") {
+    return <OTPBlockedModal onClose={onClose} />;
+  }
 
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        <h2>Verify your email</h2>
-        <p>We sent a verification code to {email}</p>
+        <p className={styles.title}>
+          We sent a verification code to {email}
+        </p>
 
         <div className={styles.inputs}>
-          {code.map((digit, i) => (
+          {otp.code.map((digit, i) => (
             <input
               key={i}
               id={`otp-${i}`}
               value={digit}
               maxLength={1}
-              onChange={(e) => handleChange(e.target.value, i)}
+              onChange={(e) => otp.handleChange(e.target.value, i)}
             />
           ))}
         </div>
 
-        {error && secondsLeft > 0 && <p className={styles.error}>{error}</p>}
+        {otp.error && otp.secondsLeft > 0 && <p className={styles.error}>{otp.error}</p>}
+        {otp.status === "EXPIRED" && <p className={styles.error}>Code expired</p>}
 
-        {secondsLeft > 0 ? (
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className={styles.button}
-        >
-          {loading ? "Verifying..." : "Verify"}
-        </button>
-        ) : (
-            <button
-              type="button"
-              onClick={handleResend}
-              className={styles.resendButton}
-            >
-              Resend code
-            </button>
+        {otp.status === "ACTIVE" && (
+          <button
+            className={styles.button}
+            onClick={otp.verify}
+            disabled={otp.loading}
+          >
+            Verify
+          </button>
         )}
 
-        <button onClick={onClose} className={styles.close}>
+        {otp.status === "EXPIRED" ? (
+          <button className={styles.resendButton} onClick={otp.resend}>
+            Resend code
+          </button>
+        ) : (
+          <p className={styles.timer}>
+            Expires in {otp.secondsLeft}s
+          </p>
+        )}
+
+        <button className={styles.close} onClick={onClose}>
           Cancel
         </button>
-        {attemptsLeft > 0 && attemptsLeft < 3 && (<p className={styles.attempts}>
-          Attempts left: {attemptsLeft}
+
+        {otp.attemptsLeft < 3 && (<p className={styles.attempts}>
+          Attempts left: {otp.attemptsLeft}
         </p>
-        )}
-        {secondsLeft > 0 ? (
-          <p className={styles.timer}>
-            Code expires in {secondsLeft} sec
-          </p>
-        ) : (
-            <p className={styles.error}>Code expired</p>
         )}
       </div>
     </div>
