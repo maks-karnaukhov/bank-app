@@ -1,33 +1,40 @@
-import { useEffect, useState } from "react";
-import { api } from "@/services/api";
+import { useEffect, useRef, useState } from "react";
+import { authApi } from "@/services/auth/authApi";
 import axios from "axios";
 
+type Status =
+  | "ACTIVE"
+  | "EXPIRED"
+  | "BLOCKED";
+
 export function useOtpFlow(email: string, onSuccess: () => void) {
-  const [status, setStatus] = useState<"ACTIVE" | "EXPIRED" | "BLOCKED" | "SUCCESS">("ACTIVE");
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [code, setCode] = useState<string[]>(Array(6).fill(""));
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [timerKey, setTimerKey] = useState(0);
+  const [error, setError] = useState("");
   const [attemptsLeft, setAttemptsLeft] = useState(3);
   const [secondsLeft, setSecondsLeft] = useState(60);
+  const [status, setStatus] = useState<Status>("ACTIVE");
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (status !== "ACTIVE") return;
 
-    const timer = setInterval(() => {
+    timerRef.current = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
-          clearInterval(timer);
+          clearInterval(timerRef.current!);
           setStatus("EXPIRED");
           return 0;
         }
-
         return prev - 1;
       });
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [timerKey, status]);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [status]);
 
   const verify = async () => {
     const fullCode = code.join("");
@@ -36,24 +43,26 @@ export function useOtpFlow(email: string, onSuccess: () => void) {
 
     try {
       setLoading(true);
-      setError(null);
+      setError("");
 
-      await api.post("/auth/verify-email", {
-        email,
-        code: fullCode,
-      });
+      await authApi.verifyEmail(email, fullCode);
 
-      setStatus("SUCCESS");
       onSuccess();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
+        const statusCode = err.response?.status;
+
         setError(err.response?.data?.message || "Invalid code");
 
-        if (err.response?.status === 400) {
+        if (statusCode === 400) {
           setAttemptsLeft((prev) => {
-            const next = Math.max(prev - 1, 0);
-            if (next === 0) setStatus("BLOCKED");
-            return next;
+            const next = prev - 1;
+
+            if (next <= 0) {
+              setStatus("BLOCKED");
+            }
+
+            return Math.max(next, 0);
           });
         }
       } else {
@@ -64,12 +73,21 @@ export function useOtpFlow(email: string, onSuccess: () => void) {
     }
   };
 
-  const resend = () => {
-    setCode(Array(6).fill(""));
-    setSecondsLeft(60);
-    setError(null);
-    setStatus("ACTIVE");
-    setTimerKey((prev) => prev + 1);
+  const resend = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      await authApi.resendOtp(email);
+
+      setCode(Array(6).fill(""));
+      setSecondsLeft(60);
+      setStatus("ACTIVE");
+    } catch (err) {
+      setError("Failed to resend code");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (value: string, index: number) => {
@@ -84,15 +102,18 @@ export function useOtpFlow(email: string, onSuccess: () => void) {
   };
 
   return {
-    status,
     code,
     setCode,
-    loading,
-    error,
-    attemptsLeft,
-    secondsLeft,
+    handleChange,
+
     verify,
     resend,
-    handleChange
+
+    loading,
+    error,
+
+    attemptsLeft,
+    secondsLeft,
+    status,
   };
 }

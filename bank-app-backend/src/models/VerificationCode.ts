@@ -11,9 +11,10 @@ const VerificationCodeSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
+      index: true,
     },
 
-    code: {
+    codeHash: {
       type: String,
       required: true,
     },
@@ -21,6 +22,22 @@ const VerificationCodeSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
+    },
+
+    attemptsLeft: {
+      type: Number,
+      default: 3,
+    },
+
+    status: {
+      type: String,
+      enum: ["ACTIVE", "EXPIRED", "BLOCKED", "USED"],
+      default: "ACTIVE",
+    },
+
+    resendAvailableAt: {
+      type: Date,
+      default: null,
     },
 
     used: {
@@ -32,6 +49,9 @@ const VerificationCodeSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+VerificationCodeSchema.index({ email: 1 });
+VerificationCodeSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export default mongoose.model(
   "VerificationCode",
