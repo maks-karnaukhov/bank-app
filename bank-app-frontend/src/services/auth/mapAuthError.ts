@@ -23,6 +23,10 @@ export function mapAuthError(error: unknown): AuthErrorCode {
     return AuthErrorCode.INVALID_CREDENTIALS;
   }
 
+  if (status === 403) {
+    return AuthErrorCode.REGISTRATION_BLOCKED;
+  }
+
   if (status === 404) {
     return AuthErrorCode.USER_NOT_FOUND;
   }

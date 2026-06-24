@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthErrorCode } from "@/services/auth/authErrors";
 import clsx from "clsx";
 import styles from "./RegisterForm.module.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,6 +11,7 @@ import type { AppDispatch, RootState } from "@/store/store";
 import { registerSchema } from "@/validation/registerSchema";
 import InfoTooltip from "../InfoTooltip/InfoTooltip";
 import { useAuthError } from "@/hooks/useAuthError";
+import { useEffect, useState } from "react";
 
 interface IProp {
   onRegisterSuccess: (email: string) => void;
@@ -21,6 +23,35 @@ export default function RegisterForm({ onRegisterSuccess }: IProp) {
   const { loading } = useSelector(
     (state: RootState) => state.auth
   );
+
+  const error = useSelector(
+    (state: RootState) => state.auth.error
+  );
+
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  let timeLeft = null;
+
+  if (
+    error?.code === AuthErrorCode.REGISTRATION_BLOCKED &&
+    error.retryAt
+  ) {
+    const retryDate = new Date(error.retryAt);
+    const msLeft = retryDate.getTime() - now;
+
+    timeLeft = {
+      hours: Math.floor(msLeft / 1000 / 60 / 60),
+      minutes: Math.ceil((msLeft / 1000 / 60) % 60),
+    };
+  }
 
   const errorMessage = useAuthError();
 
@@ -128,6 +159,14 @@ export default function RegisterForm({ onRegisterSuccess }: IProp) {
           {errorMessage && (
             <p className={clsx(styles.error, styles.serverError)}>
               {errorMessage}
+
+              {error?.code === AuthErrorCode.REGISTRATION_BLOCKED &&
+                timeLeft && (
+                  <>
+                    {" "}
+                    Please try again in {timeLeft.hours}h {timeLeft.minutes}m
+                  </>
+                )}
             </p>
           )}
 

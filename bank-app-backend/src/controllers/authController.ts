@@ -7,18 +7,24 @@ import { generateOtp } from "../utils/otp";
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const {
-      firstName,
-      lastName,
-      middleName,
-      phone,
-      email,
-      password,
-    } = req.body;
+    const { firstName, lastName, phone, email, password } = req.body;
 
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
+      if (
+        !existingUser.isEmailVerified &&
+        existingUser.emailVerificationBlockedUntil &&
+        existingUser.emailVerificationBlockedUntil > new Date()
+      ) {
+
+        return res.status(403).json({
+          code: "REGISTRATION_BLOCKED",
+          message: `You have exhausted all verification attempts.`,
+          retryAt: existingUser.emailVerificationBlockedUntil,
+        });
+      }
+
       return res.status(400).json({
         message: "User already exists",
       });
@@ -29,37 +35,23 @@ export const register = async (req: Request, res: Response) => {
     const user = await User.create({
       firstName,
       lastName,
-      middleName,
       phone,
       email,
       passwordHash,
       isEmailVerified: false,
+      emailVerificationAttempts: 0,
+      emailVerificationBlockedUntil: null,
+      deleteAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-
-    const codeHash = await bcrypt.hash(code, 10);
-
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
-    await VerificationCode.create({
-      userId: user._id,
-      email,
-      codeHash,
-      expiresAt,
-      attemptsLeft: 3,
-      status: "ACTIVE",
-    });
-
-    console.log("Verification code:", code);
+    await generateOtp(email, user._id.toString());
 
     return res.status(201).json({
-      message: "User created. Verify email.",
+      message: "User created. Please verify your email.",
     });
   } catch (error) {
-    return res.status(500).json({
-      message: "Server error",
-    });
+    console.error("REGISTER ERROR:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -107,121 +99,79 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const verifyEmail = async (
-  req: Request,
-  res: Response
-) => {
+export const verifyEmail = async (req: Request, res: Response) => {
   try {
     const { email, code } = req.body;
 
     const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.isEmailVerified) return res.status(400).json({ message: "Email already verified" });
 
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
-    }
+    const record = await VerificationCode.findOne({ email, used: false });
+    if (!record) return res.status(400).json({ message: "Invalid code" });
 
-    if (user.isEmailVerified) {
-      return res.status(400).json({
-        message: "Email already verified",
-      });
-    }
+    if (record.expiresAt < new Date()) return res.status(400).json({ message: "Code expired" });
 
-    const record = await VerificationCode.findOne({
-      email,
-      used: false,
-    });
-
-    if (!record) {
-      return res.status(400).json({
-        message: "Invalid code",
-      });
-    }
-
-    if (record.expiresAt < new Date()) {
-      return res.status(400).json({
-        message: "Code expired",
-      });
-    }
-
-    const isMatch = await bcrypt.compare(
-      code,
-      record.codeHash
-    );
-
+    const isMatch = await bcrypt.compare(code, record.codeHash);
     if (!isMatch) {
       record.attemptsLeft -= 1;
 
       if (record.attemptsLeft <= 0) {
         record.status = "BLOCKED";
-
         await record.save();
+
+        user.emailVerificationBlockedUntil = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        await user.save();
 
         return res.status(403).json({
           message: "NO_ATTEMPTS_LEFT",
+          blockedUntil: user.emailVerificationBlockedUntil,
         });
       }
 
       await record.save();
-
-      return res.status(400).json({
-        message: "Invalid code",
-        attemptsLeft: record.attemptsLeft,
-      });
+      return res.status(400).json({ message: "Invalid code", attemptsLeft: record.attemptsLeft });
     }
 
     record.used = true;
+    record.status = "USED";
     await record.save();
 
     user.isEmailVerified = true;
+    user.emailVerificationAttempts = 0;
+    user.emailVerificationBlockedUntil = null;
+    user.deleteAt = null;
     await user.save();
 
-    return res.status(200).json({
-      message: "Email verified successfully",
-    });
+    return res.status(200).json({ message: "Email verified successfully" });
   } catch (error) {
     console.error("VERIFY EMAIL ERROR:", error);
-
-    return res.status(500).json({
-      message: "Server error",
-    });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
 export const resendOtp = async (req: Request, res: Response) => {
-  const { email } = req.body;
+  try {
+    const { email } = req.body;
 
-  const user = await User.findOne({ email });
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.isEmailVerified) return res.status(400).json({ message: "Email already verified" });
 
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    if (user.emailVerificationBlockedUntil && user.emailVerificationBlockedUntil > new Date()) {
+      return res.status(403).json({
+        message: "Verification blocked. Try again later.",
+        blockedUntil: user.emailVerificationBlockedUntil,
+      });
+    }
+
+    await generateOtp(email, user._id.toString());
+
+    return res.status(200).json({ message: "OTP resent successfully" });
+  } catch (error) {
+    console.error("RESEND OTP ERROR:", error);
+    return res.status(500).json({ message: "Server error" });
   }
-
-  if (user.isEmailVerified) {
-    return res.status(400).json({ message: "Already verified" });
-  }
-
-  await VerificationCode.deleteMany({ email });
-
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-
-  const codeHash = await bcrypt.hash(code, 10);
-
-  await VerificationCode.create({
-    userId: user._id,
-    email,
-    codeHash,
-    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-    attemptsLeft: 3,
-  });
-
-  console.log("Resent OTP:", code);
-
-  return res.json({
-    message: "OTP resent",
-    expiresIn: 60,
-  });
 };
 
 export const sendOtp = async (req: Request, res: Response) => {
@@ -229,18 +179,33 @@ export const sendOtp = async (req: Request, res: Response) => {
     const { email } = req.body;
 
     const user = await User.findOne({ email });
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (user.isEmailVerified) {
-      return res.status(400).json({ message: "Email already verified" });
+    if (
+      user.emailVerificationBlockedUntil &&
+      user.emailVerificationBlockedUntil > new Date()
+    ) {
+      return res.status(403).json({
+        message: "Verification blocked. Try again later",
+        blockedUntil: user.emailVerificationBlockedUntil,
+      });
     }
 
     await generateOtp(email, user._id.toString());
 
-    return res.status(200).json({ message: "OTP sent" });
-  } catch (err) {
+    user.emailVerificationAttempts = 0;
+    user.emailVerificationBlockedUntil = null;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "OTP sent successfully",
+    });
+  } catch (error) {
+    console.error("SEND OTP ERROR:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };

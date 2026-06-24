@@ -5,14 +5,15 @@ import axios from "axios";
 type Status =
   | "ACTIVE"
   | "EXPIRED"
-  | "BLOCKED";
+  | "BLOCKED"
+  | "VERIFIED";
 
 export function useOtpFlow(email: string, onSuccess: () => void) {
   const [code, setCode] = useState<string[]>(Array(6).fill(""));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [attemptsLeft, setAttemptsLeft] = useState(3);
-  const [secondsLeft, setSecondsLeft] = useState(60);
+  const [attemptsLeft, setAttemptsLeft] = useState<number | null>(3);
+  const [secondsLeft, setSecondsLeft] = useState(90);
   const [status, setStatus] = useState<Status>("ACTIVE");
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -47,23 +48,26 @@ export function useOtpFlow(email: string, onSuccess: () => void) {
 
       await authApi.verifyEmail(email, fullCode);
 
+      setStatus("VERIFIED");
       onSuccess();
-    } catch (err: unknown) {
+
+    } catch (err) {
       if (axios.isAxiosError(err)) {
         const statusCode = err.response?.status;
+        const data = err.response?.data;
 
-        setError(err.response?.data?.message || "Invalid code");
+        setError(data?.message || "Invalid code");
 
         if (statusCode === 400) {
-          setAttemptsLeft((prev) => {
-            const next = prev - 1;
+          setAttemptsLeft(data?.attemptsLeft ?? null);
+        }
 
-            if (next <= 0) {
-              setStatus("BLOCKED");
-            }
+        if (statusCode === 403) {
+          setStatus("BLOCKED");
+        }
 
-            return Math.max(next, 0);
-          });
+        if (statusCode === 410) {
+          setStatus("EXPIRED");
         }
       } else {
         setError("Something went wrong");
@@ -81,10 +85,21 @@ export function useOtpFlow(email: string, onSuccess: () => void) {
       await authApi.resendOtp(email);
 
       setCode(Array(6).fill(""));
-      setSecondsLeft(60);
+      setSecondsLeft(90);
       setStatus("ACTIVE");
+
     } catch (err) {
-      setError("Failed to resend code");
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+
+        if (status === 403) {
+          setStatus("BLOCKED");
+        } else if (status === 429) {
+          setError("Too many requests. Try later.");
+        } else {
+          setError("Failed to resend code");
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -103,7 +118,6 @@ export function useOtpFlow(email: string, onSuccess: () => void) {
 
   return {
     code,
-    setCode,
     handleChange,
 
     verify,

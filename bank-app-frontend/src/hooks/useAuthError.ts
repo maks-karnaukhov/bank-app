@@ -9,6 +9,7 @@ const ERROR_MESSAGES: Record<AuthErrorCode, string> = {
   WEAK_PASSWORD: "Password is too weak",
   INVALID_EMAIL: "Invalid email format",
   SERVER_ERROR: "Something went wrong. Please try again later",
+  REGISTRATION_BLOCKED: "You have exhausted all verification attempts.",
 };
 
 const isAuthErrorCode = (value: unknown): value is AuthErrorCode => {
@@ -20,8 +21,8 @@ export function useAuthError() {
 
   if (!error) return null;
 
-  if (isAuthErrorCode(error)) {
-    return ERROR_MESSAGES[error];
+  if (isAuthErrorCode(error.code)) {
+    return ERROR_MESSAGES[error.code];
   }
 
   return ERROR_MESSAGES.SERVER_ERROR;

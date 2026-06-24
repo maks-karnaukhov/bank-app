@@ -1,13 +1,19 @@
+import type { AxiosError } from "axios";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { loginUser, registerUser } from "@/services/api";
 import { mapAuthError } from "@/services/auth/mapAuthError";
 import { AuthErrorCode } from "@/services/auth/authErrors";
 import { User } from "@/types/types";
 
+type AuthErrorState = {
+  code: AuthErrorCode;
+  retryAt?: string;
+} | null;
+
 interface AuthState {
   isAuthenticated: boolean;
   loading: boolean;
-  error: string | null;
+  error: AuthErrorState;
   token: string | null;
   initialized: boolean;
 }
@@ -18,6 +24,11 @@ const initialState: AuthState = {
   error: null,
   token: null,
   initialized: false,
+};
+
+ type AuthRejectValue = {
+  code: AuthErrorCode;
+  retryAt?: string;
 };
 
 export const loginUserThunk = createAsyncThunk(
@@ -37,7 +48,7 @@ export const registerUserThunk = createAsyncThunk<
     password: string;
   },
   {
-    rejectValue: AuthErrorCode;
+    rejectValue: AuthRejectValue;
   }
 >(
   "auth/registerUser",
@@ -46,8 +57,24 @@ export const registerUserThunk = createAsyncThunk<
       const response = await registerUser(data);
       return response.data;
     } catch (error) {
-      const code = mapAuthError(error);
-      return rejectWithValue(code);
+      const err = error as AxiosError<{
+        code?: string;
+        retryAt?: string;
+      }>;
+
+      if (
+        err.response?.status === 403 &&
+        err.response?.data?.retryAt
+      ) {
+        return rejectWithValue({
+          code: AuthErrorCode.REGISTRATION_BLOCKED,
+          retryAt: err.response.data.retryAt,
+        });
+      }
+
+      return rejectWithValue({
+        code: mapAuthError(error),
+      });
     }
   }
 );
@@ -85,7 +112,9 @@ const authSlice = createSlice({
       })
       .addCase(loginUserThunk.rejected, (state, action) => {
         state.loading = false;
-        state.error = mapAuthError(action.error);
+        state.error = {
+          code: mapAuthError(action.error),
+        };
       })
       .addCase(registerUserThunk.pending, (state) => {
         state.loading = true;
@@ -97,7 +126,9 @@ const authSlice = createSlice({
       })
       .addCase(registerUserThunk.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "SERVER_ERROR";
+        state.error = action.payload ?? {
+          code: AuthErrorCode.SERVER_ERROR,
+        };
       });
   },
 });

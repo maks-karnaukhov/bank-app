@@ -12,11 +12,6 @@ const UserSchema = new mongoose.Schema(
       required: true,
     },
 
-    middleName: {
-      type: String,
-      default: null,
-    },
-
     phone: {
       type: String,
       required: true,
@@ -37,9 +32,34 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    emailVerificationBlockedUntil: {
+      type: Date,
+      default: null,
+    },
+
+    emailVerificationAttempts: {
+      type: Number,
+      default: 0,
+    },
+
+    deleteAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
+  }
+);
+
+UserSchema.index(
+  { deleteAt: 1 },
+  {
+    expireAfterSeconds: 0,
+    partialFilterExpression: {
+      isEmailVerified: false,
+    },
   }
 );
 

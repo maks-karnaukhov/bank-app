@@ -63,7 +63,7 @@ export default function OTPModal({ email, onSuccess, onClose }: IProps) {
           Cancel
         </button>
 
-        {otp.attemptsLeft < 3 && (<p className={styles.attempts}>
+        {otp.attemptsLeft !== null && otp.attemptsLeft < 3 && (<p className={styles.attempts}>
           Attempts left: {otp.attemptsLeft}
         </p>
         )}
