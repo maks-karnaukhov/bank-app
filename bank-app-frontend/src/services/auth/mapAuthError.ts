@@ -18,6 +18,9 @@ export function mapAuthError(error: unknown): AuthErrorCode {
   if (status === 400 && message === "User already exists") {
     return AuthErrorCode.EMAIL_ALREADY_EXISTS;
   }
+  if (status === 400 && message === "Phone already exists") {
+    return AuthErrorCode.PHOHE_ALREADY_EXISTS;
+  }
 
   if (status === 401) {
     return AuthErrorCode.INVALID_CREDENTIALS;

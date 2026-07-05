@@ -4,12 +4,14 @@ import User from "../models/User";
 import VerificationCode from "../models/VerificationCode";
 import { Request, Response } from "express";
 import { generateOtp } from "../utils/otp";
+import { MongoServerError } from "mongodb";
 
 export const register = async (req: Request, res: Response) => {
   try {
     const { firstName, lastName, phone, email, password } = req.body;
 
     const existingUser = await User.findOne({ email });
+    const existingPhone = await User.findOne({ phone });
 
     if (existingUser) {
       if (
@@ -27,6 +29,12 @@ export const register = async (req: Request, res: Response) => {
 
       return res.status(400).json({
         message: "User already exists",
+      });
+    }
+
+    if (existingPhone) {
+      return res.status(400).json({
+        message: "Phone already exists",
       });
     }
 
@@ -50,8 +58,21 @@ export const register = async (req: Request, res: Response) => {
       message: "User created. Please verify your email.",
     });
   } catch (error) {
-    console.error("REGISTER ERROR:", error);
-    return res.status(500).json({ message: "Server error" });
+    if (
+      error instanceof MongoServerError &&
+      error.code === 11000
+    ) {
+      return res.status(400).json({
+        message:
+          error.keyPattern?.phone
+            ? "Phone already exists"
+            : "User already exists",
+      });
+    }
+
+    return res.status(500).json({
+      message: "Server error",
+    });
   }
 };
 

@@ -4,6 +4,7 @@ import { AuthErrorCode } from "@/services/auth/authErrors";
 
 const ERROR_MESSAGES: Record<AuthErrorCode, string> = {
   EMAIL_ALREADY_EXISTS: "An account with this email already exists",
+  PHOHE_ALREADY_EXISTS: "Phone already exists",
   INVALID_CREDENTIALS: "Invalid email or password",
   USER_NOT_FOUND: "User not found",
   WEAK_PASSWORD: "Password is too weak",

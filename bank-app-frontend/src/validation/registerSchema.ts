@@ -5,8 +5,8 @@ export const registerSchema = Yup.object({
   lastName: Yup.string().required("Last name is required"),
 
   phone: Yup.string()
-    .matches(/^\+?[0-9]{10,15}$/, "Invalid phone number")
-    .required("Phone is required"),
+  .matches(/^\+\d{10,15}$/, "Invalid phone number")
+  .required("Phone is required"),
 
   email: Yup.string()
     .email("Invalid email format")

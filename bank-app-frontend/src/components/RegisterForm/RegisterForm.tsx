@@ -4,7 +4,7 @@ import { AuthErrorCode } from "@/services/auth/authErrors";
 import clsx from "clsx";
 import styles from "./RegisterForm.module.css";
 import { useDispatch, useSelector } from "react-redux";
-import { Formik, Form, Field } from "formik";
+import { Formik, Form, Field, FieldProps } from "formik";
 
 import { registerUserThunk } from "@/features/auth/authSlice";
 import type { AppDispatch, RootState } from "@/store/store";
@@ -95,11 +95,24 @@ export default function RegisterForm({ onRegisterSuccess }: IProp) {
           </div>
 
           <div className={styles.field}>
-            <Field
-              name="phone"
-              placeholder="Phone"
-              className={styles.input}
-            />
+            <Field name="phone">
+              {({ field, form }: FieldProps) => (
+                <input
+                  {...field}
+                  type="tel"
+                  placeholder="Phone"
+                  className={styles.input}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+
+                    form.setFieldValue(
+                      "phone",
+                      digits ? `+${digits}` : "+"
+                    );
+                  }}
+                />
+              )}
+            </Field>
 
             <InfoTooltip
               title="Phone format"
