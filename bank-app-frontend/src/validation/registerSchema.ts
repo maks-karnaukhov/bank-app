@@ -18,4 +18,8 @@ export const registerSchema = Yup.object({
     .matches(/[a-z]/, "At least 1 lowercase letter")
     .matches(/[^A-Za-z0-9]/, "At least 1 special character")
     .required("Password is required"),
+
+  confirmPassword: Yup.string()
+    .required("Please confirm your password")
+    .oneOf([Yup.ref("password")], "Passwords must match"),
 });

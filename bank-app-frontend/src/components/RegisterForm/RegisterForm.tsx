@@ -63,12 +63,20 @@ export default function RegisterForm({ onRegisterSuccess }: IProp) {
         phone: "",
         email: "",
         password: "",
-        avatarUrl: "",
+        confirmPassword: "",
       }}
       validationSchema={registerSchema}
       validateOnMount
       onSubmit={async (values, { setSubmitting }) => {
-        const result = await dispatch(registerUserThunk(values));
+        const data = {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          phone: values.phone,
+          email: values.email,
+          password: values.password,
+        };
+
+        const result = await dispatch(registerUserThunk(data));
 
         setSubmitting(false);
 
@@ -167,6 +175,27 @@ export default function RegisterForm({ onRegisterSuccess }: IProp) {
                 </>
               }
               isError={Boolean(touched.password && errors.password)}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <Field
+              name="confirmPassword"
+              type="password"
+              placeholder="Confirm password"
+              className={styles.input}
+            />
+
+            <InfoTooltip
+              title="Confirm password"
+              content={
+                <>
+                  • Must match the password above
+                </>
+              }
+              isError={Boolean(
+                touched.confirmPassword && errors.confirmPassword
+              )}
             />
           </div>
 
