@@ -46,6 +46,7 @@ export const registerUserThunk = createAsyncThunk<
     phone: string;
     email: string;
     password: string;
+    avatarUrl?: string;
   },
   {
     rejectValue: AuthRejectValue;

@@ -8,7 +8,7 @@ import { MongoServerError } from "mongodb";
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { firstName, lastName, phone, email, password } = req.body;
+    const { firstName, lastName, phone, email, password, avatarUrl } = req.body;
 
     const existingUser = await User.findOne({ email });
     const existingPhone = await User.findOne({ phone });
@@ -46,6 +46,7 @@ export const register = async (req: Request, res: Response) => {
       phone,
       email,
       passwordHash,
+      avatarUrl: avatarUrl || null,
       isEmailVerified: false,
       emailVerificationAttempts: 0,
       emailVerificationBlockedUntil: null,

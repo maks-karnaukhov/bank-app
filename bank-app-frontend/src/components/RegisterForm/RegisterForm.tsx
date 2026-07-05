@@ -63,6 +63,7 @@ export default function RegisterForm({ onRegisterSuccess }: IProp) {
         phone: "",
         email: "",
         password: "",
+        avatarUrl: "",
       }}
       validationSchema={registerSchema}
       validateOnMount
