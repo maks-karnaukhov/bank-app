@@ -10,37 +10,46 @@ export const register = async (req: Request, res: Response) => {
   try {
     const { firstName, lastName, phone, email, password, avatarUrl } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    const existingPhone = await User.findOne({ phone });
+    let user = await User.findOne({ email });
 
-    if (existingUser) {
-      if (
-        !existingUser.isEmailVerified &&
-        existingUser.emailVerificationBlockedUntil &&
-        existingUser.emailVerificationBlockedUntil > new Date()
-      ) {
+    const phoneUser = await User.findOne({ phone });
 
-        return res.status(403).json({
-          code: "REGISTRATION_BLOCKED",
-          message: `You have exhausted all verification attempts.`,
-          retryAt: existingUser.emailVerificationBlockedUntil,
-        });
-      }
-
-      return res.status(400).json({
-        message: "User already exists",
-      });
-    }
-
-    if (existingPhone) {
+    if (phoneUser && phoneUser.email !== email) {
       return res.status(400).json({
         message: "Phone already exists",
       });
     }
 
+    if (user?.isEmailVerified) {
+      return res.status(400).json({
+        message: "User already exists",
+      });
+    }
+
+    if (
+      user &&
+      user.emailVerificationBlockedUntil &&
+      user.emailVerificationBlockedUntil > new Date()
+    ) {
+      return res.status(403).json({
+        code: "REGISTRATION_BLOCKED",
+        message: "You have exhausted all verification attempts.",
+        retryAt: user.emailVerificationBlockedUntil,
+      });
+    }
+
+    if (user && !user.isEmailVerified) {
+      await generateOtp(email, user._id.toString());
+
+      return res.status(200).json({
+        message: "Verification code resent",
+        email,
+      });
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    user = await User.create({
       firstName,
       lastName,
       phone,
@@ -59,15 +68,9 @@ export const register = async (req: Request, res: Response) => {
       message: "User created. Please verify your email.",
     });
   } catch (error) {
-    if (
-      error instanceof MongoServerError &&
-      error.code === 11000
-    ) {
+    if (error instanceof MongoServerError && error.code === 11000) {
       return res.status(400).json({
-        message:
-          error.keyPattern?.phone
-            ? "Phone already exists"
-            : "User already exists",
+        message: "Phone or email already exists",
       });
     }
 
