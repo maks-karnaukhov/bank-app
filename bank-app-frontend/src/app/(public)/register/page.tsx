@@ -10,10 +10,12 @@ import OTPModal from "@/components/OTPModal/OTPModal";
 
 import styles from "./RegisterPage.module.css";
 import Logo from "@/components/Logo/Logo";
+import EmailVerifiedModal from "@/components/EmailVerifiedModal/EmailVerifiedModal";
 
 export default function RegisterPage() {
   const [otpOpen, setOtpOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
   const router = useRouter();
 
   const { isAuthenticated, initialized } = useSelector(
@@ -49,9 +51,15 @@ export default function RegisterPage() {
         {otpOpen && (
           <OTPModal
             email={email}
-            onSuccess={() => router.push("/login")}
+            onSuccess={() => {
+              setOtpOpen(false);
+              setIsEmailVerified(true);
+            }}
             onClose={() => setOtpOpen(false)}
           />
+        )}
+        {isEmailVerified && (
+          <EmailVerifiedModal />
         )}
       </div>
     </main>
