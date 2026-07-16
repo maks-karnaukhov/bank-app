@@ -41,3 +41,6 @@ export const createTransaction = (
   }
 ) =>
   api.post("/transfer", data);
+
+export const forgotPassword = (email: string) => 
+  api.post("/auth/forgot-password", { email })

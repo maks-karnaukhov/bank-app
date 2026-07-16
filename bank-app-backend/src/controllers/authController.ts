@@ -234,3 +234,50 @@ export const sendOtp = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+export const forgotPassword = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    if (!user.isEmailVerified) {
+      return res.status(400).json({
+        message: "Email not verified",
+      });
+    }
+
+    if (
+      user.emailVerificationBlockedUntil &&
+      user.emailVerificationBlockedUntil > new Date()
+    ) {
+      return res.status(403).json({
+        code: "REGISTRATION_BLOCKED",
+        message:
+          "You have exhausted all verification attempts.",
+        retryAt: user.emailVerificationBlockedUntil,
+      });
+    }
+
+    await generateOtp(email, user._id.toString());
+
+    return res.status(200).json({
+      message: "Verification code sent successfully",
+    });
+  } catch (error) {
+    console.error("FORGOT PASSWORD ERROR:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};

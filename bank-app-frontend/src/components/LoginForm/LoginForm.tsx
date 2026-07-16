@@ -12,7 +12,11 @@ import { loginSchema } from "@/validation/LoginSchema";
 import InfoTooltip from "../InfoTooltip/InfoTooltip";
 import { useState } from "react";
 
-export default function LoginForm() {
+interface IProp {
+  onForgotPassword: () => void;
+}
+
+export default function LoginForm({onForgotPassword}: IProp) {
   const [authError, setAuthError] = useState<string | null>(null);
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -110,7 +114,7 @@ export default function LoginForm() {
             {loading ? "Please wait..." : "Sign in"}
           </button>
 
-          <button type="button" className={styles.linkA}>
+          <button type="button" className={styles.linkA} onClick={onForgotPassword}>
             Forgot password?
           </button>
 

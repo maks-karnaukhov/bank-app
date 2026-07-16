@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 
@@ -9,8 +9,11 @@ import LoginForm from "@/components/LoginForm/LoginForm";
 
 import styles from "./LoginPage.module.css";
 import Logo from "@/components/Logo/Logo";
+import ForgotPasswordModal from "@/components/ForgotPasswordModal/ForgotPasswordModal";
 
 export default function LoginPage() {
+  const [isForgotPasswordModal, setIsForgotPasswordModal] = useState(false);
+
   const router = useRouter();
 
   const { isAuthenticated, initialized } = useSelector(
@@ -35,8 +38,9 @@ export default function LoginPage() {
       <p className={styles.subtitle}>
         Sign in to your account
       </p>
-      <LoginForm />
+      <LoginForm onForgotPassword={() => setIsForgotPasswordModal(true)} />
     </div>
+    {isForgotPasswordModal && <ForgotPasswordModal />}
   </main>
   );
 }
