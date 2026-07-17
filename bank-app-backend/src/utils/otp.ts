@@ -2,7 +2,11 @@ import bcrypt from "bcrypt";
 import VerificationCode from "../models/VerificationCode";
 import { sendOtpEmail } from "./email";
 
-export const generateOtp = async (email: string, userId: string) => {
+export type OtpPurpose =
+  | "EMAIL_VERIFY"
+  | "PASSWORD_RESET";
+
+export const generateOtp = async (email: string, userId: string,  purpose: OtpPurpose) => {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   const codeHash = await bcrypt.hash(code, 10);
 
@@ -10,12 +14,14 @@ export const generateOtp = async (email: string, userId: string) => {
 
   await VerificationCode.deleteMany({
     email,
+    purpose,
     used: false,
   });
 
   await VerificationCode.create({
     userId,
     email,
+    purpose,
     codeHash,
     expiresAt,
     attemptsLeft: 3,

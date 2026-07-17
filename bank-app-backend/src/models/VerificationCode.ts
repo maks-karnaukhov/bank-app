@@ -14,6 +14,15 @@ const VerificationCodeSchema = new mongoose.Schema(
       index: true,
     },
 
+    purpose: {
+      type: String,
+      enum: [
+        "EMAIL_VERIFY",
+        "PASSWORD_RESET",
+      ],
+      required: true,
+    },
+
     codeHash: {
       type: String,
       required: true,
@@ -31,13 +40,13 @@ const VerificationCodeSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["ACTIVE", "EXPIRED", "BLOCKED", "USED"],
+      enum: [
+        "ACTIVE",
+        "EXPIRED",
+        "BLOCKED",
+        "USED",
+      ],
       default: "ACTIVE",
-    },
-
-    resendAvailableAt: {
-      type: Date,
-      default: null,
     },
 
     used: {
