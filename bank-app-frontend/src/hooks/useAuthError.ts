@@ -11,6 +11,8 @@ const ERROR_MESSAGES: Record<AuthErrorCode, string> = {
   INVALID_EMAIL: "Invalid email format",
   SERVER_ERROR: "Something went wrong. Please try again later",
   REGISTRATION_BLOCKED: "You have exhausted all verification attempts.",
+  EMAIL_NOT_VERIFIED: "Email not verified",
+  PASSWORD_RESET_BLOCKED: "You have exhausted all password reset attempts"
 };
 
 const isAuthErrorCode = (value: unknown): value is AuthErrorCode => {

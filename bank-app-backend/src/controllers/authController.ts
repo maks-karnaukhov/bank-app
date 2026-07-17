@@ -261,9 +261,8 @@ export const forgotPassword = async (
       user.emailVerificationBlockedUntil > new Date()
     ) {
       return res.status(403).json({
-        code: "REGISTRATION_BLOCKED",
-        message:
-          "You have exhausted all verification attempts.",
+        code: "PASSWORD_RESET_BLOCKED",
+        message: "You have exhausted all verification attempts.",
         retryAt: user.emailVerificationBlockedUntil,
       });
     }

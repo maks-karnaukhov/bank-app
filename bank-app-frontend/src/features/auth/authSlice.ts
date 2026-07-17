@@ -1,6 +1,6 @@
 import type { AxiosError } from "axios";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { loginUser, registerUser } from "@/services/api";
+import { loginUser, registerUser, forgotPassword } from "@/services/api";
 import { mapAuthError } from "@/services/auth/mapAuthError";
 import { AuthErrorCode } from "@/services/auth/authErrors";
 import { User } from "@/types/types";
@@ -80,6 +80,42 @@ export const registerUserThunk = createAsyncThunk<
   }
 );
 
+export const forgotPasswordThunk = createAsyncThunk<
+  void,
+  string,
+  {
+    rejectValue: AuthRejectValue;
+  }
+>(
+  "auth/forgot-password",
+  async (email, { rejectWithValue }) => {
+    try {
+      await forgotPassword(email);
+
+    } catch (error) {
+      const err = error as AxiosError<{
+        message?: string;
+        code?: AuthErrorCode;
+        retryAt?: string;
+      }>;
+
+      if (
+        err.response?.status === 403 &&
+        err.response.data?.retryAt
+      ) {
+        return rejectWithValue({
+          code: AuthErrorCode.PASSWORD_RESET_BLOCKED,
+          retryAt: err.response.data.retryAt,
+        });
+      }
+
+      return rejectWithValue({
+        code: mapAuthError(error),
+      });
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -130,6 +166,24 @@ const authSlice = createSlice({
         state.error = action.payload ?? {
           code: AuthErrorCode.SERVER_ERROR,
         };
+      })
+      .addCase(forgotPasswordThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+
+      .addCase(forgotPasswordThunk.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+      })
+
+      .addCase(forgotPasswordThunk.rejected, (state, action) => {
+        state.loading = false;
+
+        state.error =
+          action.payload ?? {
+            code: AuthErrorCode.SERVER_ERROR,
+          };
       });
   },
 });

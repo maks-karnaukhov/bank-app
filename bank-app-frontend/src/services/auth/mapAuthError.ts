@@ -21,6 +21,9 @@ export function mapAuthError(error: unknown): AuthErrorCode {
   if (status === 400 && message === "Phone already exists") {
     return AuthErrorCode.PHOHE_ALREADY_EXISTS;
   }
+  if (status === 400 && message === "Email not verified") {
+    return AuthErrorCode.EMAIL_NOT_VERIFIED;
+  }
 
   if (status === 401) {
     return AuthErrorCode.INVALID_CREDENTIALS;

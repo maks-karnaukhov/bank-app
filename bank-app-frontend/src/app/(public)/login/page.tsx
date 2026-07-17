@@ -10,9 +10,12 @@ import LoginForm from "@/components/LoginForm/LoginForm";
 import styles from "./LoginPage.module.css";
 import Logo from "@/components/Logo/Logo";
 import ForgotPasswordModal from "@/components/ForgotPasswordModal/ForgotPasswordModal";
+import OTPModal from "@/components/OTPModal/OTPModal";
 
 export default function LoginPage() {
   const [isForgotPasswordModal, setIsForgotPasswordModal] = useState(false);
+  const [otpOpen, setOtpOpen] = useState(false);
+  const [email, setEmail] = useState("");
 
   const router = useRouter();
 
@@ -40,7 +43,23 @@ export default function LoginPage() {
       </p>
       <LoginForm onForgotPassword={() => setIsForgotPasswordModal(true)} />
     </div>
-    {isForgotPasswordModal && <ForgotPasswordModal />}
+    {isForgotPasswordModal && 
+      <ForgotPasswordModal 
+        onCloseModal={() => setIsForgotPasswordModal(false)} 
+        onOpenOTP={() => setOtpOpen(true)}
+        onSaveEmail={(value: string) => setEmail(value)}
+      />
+    }
+    {otpOpen && (
+      <OTPModal
+        email={email}
+        onSuccess={() => {
+          setOtpOpen(false);
+          // Открытие модального окна (это вы ?)
+        }}
+        onClose={() => setOtpOpen(false)}
+      />
+    )}
   </main>
   );
 }
