@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { authApi } from "@/services/auth/authApi";
+import { authApi, type OtpPurpose } from "@/services/auth/authApi";
 import axios from "axios";
 
 type Status =
@@ -8,7 +8,11 @@ type Status =
   | "BLOCKED"
   | "VERIFIED";
 
-export function useOtpFlow(email: string, onSuccess: () => void) {
+export function useOtpFlow(
+  email: string,
+  purpose: OtpPurpose,
+  onSuccess: () => void
+) {
   const [code, setCode] = useState<string[]>(Array(6).fill(""));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -46,7 +50,11 @@ export function useOtpFlow(email: string, onSuccess: () => void) {
       setLoading(true);
       setError("");
 
-      await authApi.verifyEmail(email, fullCode);
+      await authApi.verifyOtp(
+        email,
+        fullCode,
+        purpose
+      );
 
       setStatus("VERIFIED");
       onSuccess();
@@ -82,7 +90,10 @@ export function useOtpFlow(email: string, onSuccess: () => void) {
       setLoading(true);
       setError("");
 
-      await authApi.resendOtp(email);
+      await authApi.requestOtp(
+        email,
+        purpose
+      );
 
       setCode(Array(6).fill(""));
       setSecondsLeft(90);

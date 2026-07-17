@@ -3,15 +3,17 @@
 import OTPBlockedModal from "../OTPBlockedModal/OTPBlockedModal";
 import { useOtpFlow } from "./useOtpFlow";
 import styles from "./OTPModal.module.css";
+import type { OtpPurpose } from "@/services/auth/authApi";
 
 interface IProps {
   email: string;
+  purpose: OtpPurpose;
   onSuccess: () => void;
   onClose: () => void;
 }
 
-export default function OTPModal({ email, onSuccess, onClose }: IProps) {
-  const otp = useOtpFlow(email, onSuccess);
+export default function OTPModal({ email, purpose, onSuccess, onClose }: IProps) {
+  const otp = useOtpFlow(email, purpose, onSuccess);
 
   if (otp.status === "BLOCKED") {
     return <OTPBlockedModal onClose={onClose} />;

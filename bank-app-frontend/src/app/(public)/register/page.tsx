@@ -51,6 +51,7 @@ export default function RegisterPage() {
         {otpOpen && (
           <OTPModal
             email={email}
+            purpose="EMAIL_VERIFY"
             onSuccess={() => {
               setOtpOpen(false);
               setIsEmailVerified(true);

@@ -53,6 +53,7 @@ export default function LoginPage() {
     {otpOpen && (
       <OTPModal
         email={email}
+        purpose="PASSWORD_RESET"
         onSuccess={() => {
           setOtpOpen(false);
           // Открытие модального окна (это вы ?)

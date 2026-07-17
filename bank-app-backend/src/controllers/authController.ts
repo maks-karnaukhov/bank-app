@@ -130,7 +130,14 @@ export const verifyOtp = async (req: Request, res: Response) => {
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
-    if (user.isEmailVerified) return res.status(400).json({ message: "Email already verified" });
+    if (
+      purpose === "EMAIL_VERIFY" &&
+      user.isEmailVerified
+    ) {
+      return res.status(400).json({
+        message: "Email already verified",
+      });
+    }
 
     const record = await VerificationCode.findOne({ email, purpose, used: false });
     if (!record) return res.status(400).json({ message: "Invalid code" });

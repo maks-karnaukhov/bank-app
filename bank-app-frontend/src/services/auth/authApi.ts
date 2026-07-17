@@ -13,6 +13,10 @@ export interface LoginDto {
   password: string;
 }
 
+export type OtpPurpose =
+  | "EMAIL_VERIFY"
+  | "PASSWORD_RESET";
+
 export const authApi = {
   register(data: RegisterDto) {
     return api.post("/auth/register", data);
@@ -22,15 +26,25 @@ export const authApi = {
     return api.post("/auth/login", data);
   },
 
-  sendOtp(email: string) {
-    return api.post("/auth/send-otp", { email });
+  requestOtp(
+    email: string,
+    purpose: OtpPurpose
+  ) {
+    return api.post("/auth/request-otp", {
+      email,
+      purpose,
+    });
   },
 
-  resendOtp(email: string) {
-    return api.post("/auth/resend-otp", { email });
-  },
-
-  verifyEmail(email: string, code: string) {
-    return api.post("/auth/verify-email", { email, code });
+  verifyOtp(
+    email: string,
+    code: string,
+    purpose: OtpPurpose
+  ) {
+    return api.post("/auth/verify-otp", {
+      email,
+      code,
+      purpose,
+    });
   },
 };
