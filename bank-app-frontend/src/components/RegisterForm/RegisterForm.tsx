@@ -11,7 +11,7 @@ import type { AppDispatch, RootState } from "@/store/store";
 import { registerSchema } from "@/validation/registerSchema";
 import InfoTooltip from "../InfoTooltip/InfoTooltip";
 import { useAuthError } from "@/hooks/useAuthError";
-import { useEffect, useState } from "react";
+import { useRetryTime } from "@/hooks/useRetryTime";
 
 interface IProp {
   onRegisterSuccess: (email: string) => void;
@@ -28,30 +28,7 @@ export default function RegisterForm({ onRegisterSuccess }: IProp) {
     (state: RootState) => state.auth.error
   );
 
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setNow(Date.now());
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  let timeLeft = null;
-
-  if (
-    error?.code === AuthErrorCode.REGISTRATION_BLOCKED &&
-    error.retryAt
-  ) {
-    const retryDate = new Date(error.retryAt);
-    const msLeft = retryDate.getTime() - now;
-
-    timeLeft = {
-      hours: Math.floor(msLeft / 1000 / 60 / 60),
-      minutes: Math.ceil((msLeft / 1000 / 60) % 60),
-    };
-  }
+  const timeLeft = useRetryTime(error?.retryAt);
 
   const errorMessage = useAuthError();
 
@@ -207,7 +184,7 @@ export default function RegisterForm({ onRegisterSuccess }: IProp) {
                 timeLeft && (
                   <>
                     {" "}
-                    Please try again in {timeLeft.hours}h {timeLeft.minutes}m
+                    Please try again in {timeLeft.formatted}
                   </>
                 )}
             </p>

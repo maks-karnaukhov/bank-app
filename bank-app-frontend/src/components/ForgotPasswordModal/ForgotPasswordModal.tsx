@@ -11,9 +11,12 @@ interface IProps {
     onCloseModal: () => void;
     onOpenOTP: () => void;
     onSaveEmail: (value: string) => void;
+    onError: (message: string) => void;
+    onTitle: (value: string) => void;
+    onRetryAt: (value: string) => void;
 }
 
-export default function ForgotPasswordModal({onCloseModal, onOpenOTP, onSaveEmail}: IProps) {
+export default function ForgotPasswordModal({onCloseModal, onOpenOTP, onSaveEmail, onError, onTitle, onRetryAt}: IProps) {
     const dispatch = useDispatch<AppDispatch>();
 
     return (
@@ -21,16 +24,39 @@ export default function ForgotPasswordModal({onCloseModal, onOpenOTP, onSaveEmai
             initialValues={{email: ""}}
             validationSchema={resetSchema}
             onSubmit={async (values) => {
-                const result = await dispatch(forgotPasswordThunk(values.email));
+                const result = await dispatch(
+                    forgotPasswordThunk(values.email)
+                );
 
                 if (forgotPasswordThunk.fulfilled.match(result)) {
+                    onSaveEmail(values.email);
                     onCloseModal();
                     onOpenOTP();
-                    onSaveEmail(values.email);
+                    return;
                 }
-                // Если пользователь не найден - модалка
-                // Если пользователь не подтвердил емаил - модалка
-                // Если пользователь израсходовал все попытки ввода кода при сбросе пароля - модалка
+
+                if (result.payload?.code === "USER_NOT_FOUND") {
+                    onTitle("User not found");
+                    onError(
+                        "User with this email was not found."
+                    );
+                    return;
+                }
+
+                if (result.payload?.code === "EMAIL_NOT_VERIFIED") {
+                    onTitle("Email not verified");
+                    onError(
+                        "Please verify your email before resetting your password."
+                    );
+                    return;
+                }
+
+                if (result.payload?.code === "PASSWORD_RESET_BLOCKED") {
+                    onTitle("Password reset has been temporarily blocked");
+                    onRetryAt(result.payload.retryAt!);
+                    onError("Please try again later.");
+                    return;
+                }
             }}
         >
             {({

@@ -28,6 +28,7 @@ const initialState: AuthState = {
 
  type AuthRejectValue = {
   code: AuthErrorCode;
+  message?: string;
   retryAt?: string;
 };
 

@@ -11,13 +11,22 @@ import styles from "./LoginPage.module.css";
 import Logo from "@/components/Logo/Logo";
 import ForgotPasswordModal from "@/components/ForgotPasswordModal/ForgotPasswordModal";
 import OTPModal from "@/components/OTPModal/OTPModal";
+import InfoModal from "@/components/InfoModal/InfoModal";
+import { useRetryTime } from "@/hooks/useRetryTime";
 
 export default function LoginPage() {
-  const [isForgotPasswordModal, setIsForgotPasswordModal] = useState(false);
-  const [otpOpen, setOtpOpen] = useState(false);
+  const [retryAt, setRetryAt] = useState<string>();
+  const [modal, setModal] = useState<
+    "forgot" | "otp" | "info" | null
+  >(null);
   const [email, setEmail] = useState("");
+  const [info, setInfo] = useState({
+    title: "",
+    message: "",
+  });
 
   const router = useRouter();
+  const timeLeft = useRetryTime(retryAt);
 
   const { isAuthenticated, initialized } = useSelector(
     (state: RootState) => state.auth
@@ -41,24 +50,50 @@ export default function LoginPage() {
       <p className={styles.subtitle}>
         Sign in to your account
       </p>
-      <LoginForm onForgotPassword={() => setIsForgotPasswordModal(true)} />
+      <LoginForm onForgotPassword={() => setModal("forgot")} />
     </div>
-    {isForgotPasswordModal && 
-      <ForgotPasswordModal 
-        onCloseModal={() => setIsForgotPasswordModal(false)} 
-        onOpenOTP={() => setOtpOpen(true)}
+    {modal === "forgot" && (
+      <ForgotPasswordModal
+        onCloseModal={() => setModal(null)}
+        onOpenOTP={() => setModal("otp")}
         onSaveEmail={(value: string) => setEmail(value)}
+        onError={(message) => {
+          setInfo((prev) => ({
+            ...prev,
+            message,
+          }));
+
+          setModal("info");
+        }}
+        onTitle={(title) => {
+          setInfo((prev) => ({
+            ...prev,
+            title,
+          }));
+        }}
+        onRetryAt={(value: string) => setRetryAt(value)}
       />
-    }
-    {otpOpen && (
+    )}
+    {modal === "otp" && (
       <OTPModal
         email={email}
         purpose="PASSWORD_RESET"
         onSuccess={() => {
-          setOtpOpen(false);
+          setModal(null);
           // Открытие модального окна (это вы ?)
         }}
-        onClose={() => setOtpOpen(false)}
+        onClose={() => setModal(null)}
+      />
+    )}
+    {modal === "info" && (
+      <InfoModal
+        title={info.title}
+        message={
+          info.title === "Password reset has been temporarily blocked" && timeLeft
+            ? `Please try again in ${timeLeft.formatted}`
+            : info.message
+        }
+        onClose={() => setModal(null)}
       />
     )}
   </main>
