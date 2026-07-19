@@ -43,4 +43,13 @@ export const createTransaction = (
   api.post("/transfer", data);
 
 export const forgotPassword = (email: string) => 
-  api.post("/auth/forgot-password", { email })
+  api.post("/auth/forgot-password", { email });
+
+export const resetPassword = (
+    email: string,
+    password: string
+) =>
+    api.post("/auth/reset-password", {
+        email,
+        password,
+    });

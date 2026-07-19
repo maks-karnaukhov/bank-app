@@ -15,13 +15,14 @@ import OTPModal from "@/components/OTPModal/OTPModal";
 import InfoModal from "@/components/InfoModal/InfoModal";
 import { useRetryTime } from "@/hooks/useRetryTime";
 import type { User } from "@/types/types";
+import ResetPasswordModal from "@/components/ResetPasswordModal/ResetPasswordModal";
 
 export default function LoginPage() {
-  const [retryAt, setRetryAt] = useState<string>();
+  const [retryAt, setRetryAt] = useState<string>("");
   const [selectedUser, setSelectedUser] =
   useState<User | null>(null);
   const [modal, setModal] = useState<
-    "forgot" | "otp" | "info" | "confirm-user" | null
+    "forgot" | "otp" | "info" | "confirm-user" | "reset-password" | null
   >(null);
   const [email, setEmail] = useState("");
   const [info, setInfo] = useState({
@@ -106,12 +107,31 @@ export default function LoginPage() {
     <ConfirmUserModal
         user={selectedUser}
         onConfirm={() => {
-            // следующий шаг: ввод нового пароля
+            setModal("reset-password");
         }}
         onClose={() => {
             setSelectedUser(null);
             setModal(null);
         }}
+    />
+    )}
+    {modal === "reset-password" && (
+    <ResetPasswordModal
+        email={email}
+        onSuccess={() => {
+          setSelectedUser(null);
+          setEmail("");
+          setRetryAt("");
+
+            setInfo({
+                title: "🎉 Password changed",
+                message:
+                    "Password has been changed successfully. Please sign in with your new password",
+            });
+
+            setModal("info");
+        }}
+        onClose={() => setModal(null)}
     />
 )}
   </main>

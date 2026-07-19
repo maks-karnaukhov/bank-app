@@ -292,3 +292,37 @@ export const requestOtp = async (
     });
   }
 };
+
+export const resetPassword = async (
+    req: Request,
+    res: Response
+) => {
+    try {
+        const { email, password } = req.body;
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        user.passwordHash = passwordHash;
+
+        await user.save();
+
+        return res.status(200).json({
+            message: "Password changed successfully",
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};

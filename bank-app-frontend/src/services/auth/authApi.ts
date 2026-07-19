@@ -53,4 +53,14 @@ export const authApi = {
       purpose,
     });
   },
+
+  resetPassword(
+    email: string,
+    password: string
+  ) {
+      return api.post("/auth/reset-password", {
+          email,
+          password,
+      });
+  },
 };
