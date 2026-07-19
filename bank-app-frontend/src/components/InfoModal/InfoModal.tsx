@@ -16,7 +16,7 @@ export default function InfoModal({
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        {message === "Password has been changed successfully. Please sign in with your new password" && (
+        {message !== "Password has been changed successfully. Please sign in with your new password" && (
             <div className={styles.icon}>
                 !
             </div>
