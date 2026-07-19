@@ -1,4 +1,5 @@
 import { api } from "@/services/api";
+import { User } from "@/types/types";
 
 export interface RegisterDto {
   firstName: string;
@@ -11,6 +12,11 @@ export interface RegisterDto {
 export interface LoginDto {
   email: string;
   password: string;
+}
+
+export interface VerifyOtpResponse {
+  message: string;
+  user?: User;
 }
 
 export type OtpPurpose =
@@ -41,7 +47,7 @@ export const authApi = {
     code: string,
     purpose: OtpPurpose
   ) {
-    return api.post("/auth/verify-otp", {
+    return api.post<VerifyOtpResponse>("/auth/verify-otp", {
       email,
       code,
       purpose,

@@ -4,11 +4,12 @@ import OTPBlockedModal from "../OTPBlockedModal/OTPBlockedModal";
 import { useOtpFlow } from "./useOtpFlow";
 import styles from "./OTPModal.module.css";
 import type { OtpPurpose } from "@/services/auth/authApi";
+import type { User } from "@/types/types";
 
 interface IProps {
   email: string;
   purpose: OtpPurpose;
-  onSuccess: () => void;
+  onSuccess: (user?: User) => void;
   onClose: () => void;
 }
 

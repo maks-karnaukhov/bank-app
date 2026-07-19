@@ -178,14 +178,23 @@ export const verifyOtp = async (req: Request, res: Response) => {
       await user.save();
     }
 
-    return res.status(200).json({
-      message:
-        purpose === "EMAIL_VERIFY"
-          ? "Email verified successfully"
-          : "OTP verified successfully",
+    if (purpose === "EMAIL_VERIFY") {
+      return res.status(200).json({
+        message: "Email verified successfully",
       });
+    }
+
+    return res.status(200).json({
+      message: "OTP verified successfully",
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+      },
+    });
   } catch (error) {
-    console.error("VERIFY EMAIL ERROR:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };

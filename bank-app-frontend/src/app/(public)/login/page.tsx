@@ -10,14 +10,18 @@ import LoginForm from "@/components/LoginForm/LoginForm";
 import styles from "./LoginPage.module.css";
 import Logo from "@/components/Logo/Logo";
 import ForgotPasswordModal from "@/components/ForgotPasswordModal/ForgotPasswordModal";
+import ConfirmUserModal from "@/components/ConfirmUserModal/ConfirmUserModal";
 import OTPModal from "@/components/OTPModal/OTPModal";
 import InfoModal from "@/components/InfoModal/InfoModal";
 import { useRetryTime } from "@/hooks/useRetryTime";
+import type { User } from "@/types/types";
 
 export default function LoginPage() {
   const [retryAt, setRetryAt] = useState<string>();
+  const [selectedUser, setSelectedUser] =
+  useState<User | null>(null);
   const [modal, setModal] = useState<
-    "forgot" | "otp" | "info" | null
+    "forgot" | "otp" | "info" | "confirm-user" | null
   >(null);
   const [email, setEmail] = useState("");
   const [info, setInfo] = useState({
@@ -78,9 +82,11 @@ export default function LoginPage() {
       <OTPModal
         email={email}
         purpose="PASSWORD_RESET"
-        onSuccess={() => {
-          setModal(null);
-          // Открытие модального окна (это вы ?)
+        onSuccess={(user) => {
+          console.log(user);
+
+          setSelectedUser(user ?? null)
+          setModal("confirm-user");
         }}
         onClose={() => setModal(null)}
       />
@@ -96,6 +102,18 @@ export default function LoginPage() {
         onClose={() => setModal(null)}
       />
     )}
+    {modal === "confirm-user" && selectedUser && (
+    <ConfirmUserModal
+        user={selectedUser}
+        onConfirm={() => {
+            // следующий шаг: ввод нового пароля
+        }}
+        onClose={() => {
+            setSelectedUser(null);
+            setModal(null);
+        }}
+    />
+)}
   </main>
   );
 }

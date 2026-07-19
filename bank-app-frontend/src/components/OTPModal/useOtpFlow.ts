@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { authApi, type OtpPurpose } from "@/services/auth/authApi";
+import type { User } from "@/types/types";
 import axios from "axios";
 
 type Status =
@@ -11,7 +12,7 @@ type Status =
 export function useOtpFlow(
   email: string,
   purpose: OtpPurpose,
-  onSuccess: () => void
+  onSuccess: (user?: User) => void
 ) {
   const [code, setCode] = useState<string[]>(Array(6).fill(""));
   const [loading, setLoading] = useState(false);
@@ -50,14 +51,14 @@ export function useOtpFlow(
       setLoading(true);
       setError("");
 
-      await authApi.verifyOtp(
+      const response = await authApi.verifyOtp(
         email,
         fullCode,
         purpose
       );
 
       setStatus("VERIFIED");
-      onSuccess();
+      onSuccess(response.data.user);
 
     } catch (err) {
       if (axios.isAxiosError(err)) {
