@@ -6,6 +6,7 @@ import { connectDB } from "./db";
 import authRoutes from './routers/auth';
 import transactionsRoutes from './routers/transactions';
 import transferRoutes from './routers/transfer';
+import cardsRouter from "./routers/cards";
 
 dotenv.config();
 connectDB();
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/transactions', transactionsRoutes);
 app.use('/transfer', transferRoutes);
+app.use('/cards', cardsRouter);
 
 app.get('/', (req, res) => {
   res.send('API is running');
