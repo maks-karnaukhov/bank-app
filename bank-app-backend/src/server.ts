@@ -7,6 +7,7 @@ import authRoutes from './routers/auth';
 import transactionsRoutes from './routers/transactions';
 import transferRoutes from './routers/transfer';
 import cardsRouter from "./routers/cards";
+import cardOrdersRouter from "./routers/CardOrders";
 
 dotenv.config();
 connectDB();
@@ -20,6 +21,7 @@ app.use('/auth', authRoutes);
 app.use('/transactions', transactionsRoutes);
 app.use('/transfer', transferRoutes);
 app.use('/cards', cardsRouter);
+app.use("/api/card-orders", cardOrdersRouter);
 
 app.get('/', (req, res) => {
   res.send('API is running');
