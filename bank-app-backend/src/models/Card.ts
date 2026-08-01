@@ -83,6 +83,16 @@ const CardSchema = new mongoose.Schema(
         default: "VISA",
     },
 
+    encryptedCvv: {
+        type: String,
+        required: true,
+    },
+
+    isVirtual: {
+        type: Boolean,
+        default: true,
+    },
+
 });
 
 CardSchema.index({

@@ -25,6 +25,7 @@ export interface Card {
     creditLimit: number | null;
     color: string;
     isActive: boolean;
+    isVirtual: boolean;
     createdAt: string;
     network:
       | "VISA"

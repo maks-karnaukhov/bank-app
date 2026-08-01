@@ -5,6 +5,7 @@ import VerificationCode from "../models/VerificationCode";
 import { Request, Response } from "express";
 import { generateOtp } from "../utils/otp";
 import { MongoServerError } from "mongodb";
+import { createInitialCard } from "./cardController";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -176,6 +177,10 @@ export const verifyOtp = async (req: Request, res: Response) => {
       user.deleteAt = null;
 
       await user.save();
+
+      await createInitialCard(
+        user._id.toString()
+      );
     }
 
     if (purpose === "EMAIL_VERIFY") {

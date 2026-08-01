@@ -1,6 +1,19 @@
+import bcrypt from "bcrypt";
 import { Response } from "express";
 
 import Card from "../models/Card";
+import User from "../models/User";
+
+import {
+    encrypt,
+    decrypt,
+} from "../utils/crypto";
+
+import {
+    generateCardNumber,
+    generateExpiryDate,
+    generateCvv,
+} from "../utils/cardGenerator";
 
 import { AuthRequest } from "../middleware/authMiddleware";
 
@@ -25,6 +38,14 @@ export const getCards = async (
             createdAt: -1,
         });
 
+        console.log(
+            "CARDS:",
+            cards.map((card) => ({
+                id: card._id.toString(),
+                last4: card.last4,
+            }))
+        );
+
         const safeCards = cards.map((card) => ({
             id: card._id,
             name: card.name,
@@ -36,13 +57,13 @@ export const getCards = async (
             color: card.color,
             isActive: card.isActive,
             createdAt: card.createdAt,
+            network: card.network,
+            isVirtual: card.isVirtual,
         }));
-
 
         return res.status(200).json(
             safeCards
         );
-
 
     } catch (error) {
 
@@ -51,10 +72,360 @@ export const getCards = async (
             error
         );
 
-
         return res.status(500).json({
             message: "Server error",
         });
 
+    }
+};
+
+export const getCardDetails = async (
+    req: AuthRequest,
+    res: Response
+    ) => {
+    try {
+        const userId = req.userId;
+        const { cardId } = req.params;
+        const { password } = req.body;
+
+            if (!userId) {
+                return res.status(401).json({
+                    message: "Unauthorized",
+                });
+            }
+
+            if (!cardId) {
+                return res.status(400).json({
+                    message: "Card ID is required",
+                });
+            }
+
+            if (!password) {
+                return res.status(400).json({
+                    message: "Password is required",
+                });
+            }
+
+            const user = await User.findById(userId);
+
+            if (!user) {
+                return res.status(404).json({
+                    message: "User not found",
+                });
+            }
+
+            const isPasswordValid = await bcrypt.compare(
+                password,
+                user.passwordHash
+            );
+
+            if (!isPasswordValid) {
+                return res.status(401).json({
+                    message: "Invalid password",
+                });
+            }
+
+            const card = await Card.findOne({
+                _id: cardId,
+                userId,
+            });
+
+            if (!card) {
+                return res.status(404).json({
+                    message: "Card not found",
+                });
+            }
+
+            const number = decrypt(
+                card.encryptedNumber
+            );
+
+            const expiryDate = decrypt(
+                card.encryptedExpiryDate
+            );
+
+            const cvv = decrypt(
+                card.encryptedCvv
+            );
+
+            return res.status(200).json({
+                number,
+                expiryDate,
+                cvv,
+                holderName: card.holderName,
+            });
+
+    } catch (error) {
+        console.error(
+            "Get card details error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+
+};
+
+export const createVirtualCard = async (
+    req: AuthRequest,
+    res: Response
+) => {
+    try {
+        const userId = req.userId;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+            });
+        }
+
+        const existingCard = await Card.findOne({
+            userId,
+            type: "DEBIT",
+            isActive: true,
+        });
+
+        if (existingCard) {
+            return res.status(400).json({
+                message: "Active debit card already exists",
+            });
+        }
+
+        const cardNumber = generateCardNumber();
+        const expiryDate = generateExpiryDate();
+        const cvv = generateCvv();
+
+        const card = await Card.create({
+            userId,
+            type: "DEBIT",
+            currency: "USD",
+            isActive: true,
+            name: "Main card",
+            color: "#2563eb",
+            encryptedNumber: encrypt(cardNumber),
+            last4: cardNumber.slice(-4),
+            holderName: `${user.firstName} ${user.lastName}`,
+            encryptedExpiryDate: encrypt(expiryDate),
+            encryptedCvv: encrypt(cvv),
+            balance: 0,
+            creditLimit: null,
+            network: "VISA",
+        });
+
+        return res.status(201).json({
+            id: card._id,
+            name: card.name,
+            type: card.type,
+            currency: card.currency,
+            last4: card.last4,
+            balance: card.balance,
+            creditLimit: card.creditLimit,
+            color: card.color,
+            isActive: card.isActive,
+            createdAt: card.createdAt,
+            network: card.network,
+        });
+
+    } catch (error) {
+        console.error(
+            "Create virtual card error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};
+
+export const createInitialCard = async (
+    userId: string
+) => {
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    const existingCard = await Card.findOne({
+        userId,
+    });
+
+    if (existingCard) {
+        return existingCard;
+    }
+
+    const cardNumber = generateCardNumber();
+    const expiryDate = generateExpiryDate();
+    const cvv = generateCvv();
+
+    const card = await Card.create({
+        userId,
+        type: "DEBIT",
+        currency: "USD",
+        name: "Main card",
+        color: "#2563eb",
+        encryptedNumber: encrypt(cardNumber),
+        last4: cardNumber.slice(-4),
+        holderName: `${user.firstName} ${user.lastName}`,
+        encryptedExpiryDate: encrypt(expiryDate),
+        encryptedCvv: encrypt(cvv),
+        balance: 0,
+        creditLimit: null,
+        network: "VISA",
+        isActive: true,
+        isVirtual: true,
+    });
+
+    console.log(
+        `Initial virtual card created for user ${userId}`
+    );
+
+    return card;
+};
+
+export const getCardById = async (
+    req: AuthRequest,
+    res: Response
+) => {
+    try {
+        const userId = req.userId;
+        const { id } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        const card = await Card.findOne({
+            _id: id,
+            userId,
+        });
+
+        if (!card) {
+            return res.status(404).json({
+                message: "Card not found",
+            });
+        }
+
+        return res.status(200).json({
+            id: card._id,
+            name: card.name,
+            type: card.type,
+            currency: card.currency,
+            last4: card.last4,
+            balance: card.balance,
+            creditLimit: card.creditLimit,
+            color: card.color,
+            isActive: card.isActive,
+            createdAt: card.createdAt,
+            network: card.network,
+        });
+    } catch (error) {
+        console.error(
+            "Get card error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};
+
+export const revealCardDetails = async (
+    req: AuthRequest,
+    res: Response
+) => {
+    try {
+        const userId = req.userId;
+        const { id } = req.params;
+        const { password } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        if (!password) {
+            return res.status(400).json({
+                message: "Password is required",
+            });
+        }
+
+        const user = await User.findById(
+            userId
+        );
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+            });
+        }
+
+        const isPasswordValid =
+            await bcrypt.compare(
+                password,
+                user.passwordHash
+            );
+
+        if (!isPasswordValid) {
+            return res.status(403).json({
+                message: "Invalid password",
+            });
+        }
+
+        const card = await Card.findOne({
+            _id: id,
+            userId,
+        });
+
+        if (!card) {
+            return res.status(404).json({
+                message: "Card not found",
+            });
+        }
+
+        const cardNumber = decrypt(card.encryptedNumber);
+        const expiryDate = decrypt(card.encryptedExpiryDate);
+        const cvv = decrypt(card.encryptedCvv);
+
+        return res.status(200).json({
+            id: card._id,
+            name: card.name,
+            type: card.type,
+            network: card.network,
+            currency: card.currency,
+            number: cardNumber,
+            expiryDate,
+            cvv,
+            holderName: card.holderName,
+            balance: card.balance,
+            creditLimit: card.creditLimit,
+            isVirtual: card.isVirtual,
+        });
+
+    } catch (error) {
+        console.error(
+            "Reveal card details error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
     }
 };

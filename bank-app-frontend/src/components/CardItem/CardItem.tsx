@@ -20,10 +20,13 @@ export default function CardItem({
         >
             <div className={styles.top}>
                 <span className={styles.type}>
-                    {card.network} {
-                        card.type === "DEBIT"
-                            ? "Debit"
-                            : "Credit"
+                    {card.network === "VISA"
+                        ? "Visa"
+                        : card.network
+                    }{" "}
+                    {card.type === "DEBIT"
+                        ? "Debit"
+                        : "Credit"
                     }
                 </span>
 

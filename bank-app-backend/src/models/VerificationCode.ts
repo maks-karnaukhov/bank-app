@@ -59,7 +59,6 @@ const VerificationCodeSchema = new mongoose.Schema(
   }
 );
 
-VerificationCodeSchema.index({ email: 1 });
 VerificationCodeSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export default mongoose.model(
