@@ -3,7 +3,8 @@ import express from "express";
 import {
     createCardOrder,
     getCurrentCardOrder,
-    scheduleCardOrder
+    scheduleCardOrder,
+    deliverCardOrder
 } from "../controllers/CardOrderController";
 
 import {
@@ -28,6 +29,12 @@ router.patch(
     "/:id/schedule",
     authMiddleware,
     scheduleCardOrder
+);
+
+router.patch(
+    "/:id/deliver",
+    authMiddleware,
+    deliverCardOrder
 );
 
 export default router;

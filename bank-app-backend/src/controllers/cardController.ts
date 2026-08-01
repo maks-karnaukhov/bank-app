@@ -17,6 +17,7 @@ import {
 } from "../utils/cardGenerator";
 
 import { AuthRequest } from "../middleware/authMiddleware";
+import CardOrder from "../models/CardOrder";
 
 export const getCards = async (
     req: AuthRequest,
@@ -35,6 +36,7 @@ export const getCards = async (
 
         const cards = await Card.find({
             userId,
+            isActive: true,
         }).sort({
             createdAt: -1,
         });
@@ -554,6 +556,124 @@ export const getCardRevealStatus = async (
     } catch (error) {
         console.error(
             "Get card reveal status error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};
+
+export const activateCard = async (
+    req: AuthRequest,
+    res: Response
+) => {
+    try {
+        const userId = req.userId;
+        const { id } = req.params;
+        const { password } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        if (!password) {
+            return res.status(400).json({
+                message: "Password is required",
+            });
+        }
+
+        const card = await Card.findOne({
+            _id: id,
+            userId,
+            isVirtual: false,
+        });
+
+        if (!card) {
+            return res.status(404).json({
+                message: "Physical card not found",
+            });
+        }
+
+        if (card.isActive) {
+            return res.status(400).json({
+                message: "Card is already active",
+            });
+        }
+
+        const user = await User.findById(
+            userId
+        );
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+            });
+        }
+
+        const isPasswordValid =
+            await bcrypt.compare(
+                password,
+                user.passwordHash
+            );
+
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                message: "Invalid password",
+            });
+        }
+
+        const order = await CardOrder.findOne({
+            userId,
+            cardId: card._id,
+        });
+
+        if (!order) {
+            return res.status(404).json({
+                message: "Card order not found",
+            });
+        }
+
+        if (order.status !== "DELIVERED") {
+            return res.status(400).json({
+                message:
+                    "Card cannot be activated in its current status",
+            });
+        }
+
+        card.isActive = true;
+
+        await card.save();
+
+        order.status = "ACTIVATED";
+        order.activatedAt = new Date();
+
+        await order.save();
+
+        return res.status(200).json({
+            message: "Card activated successfully",
+            card: {
+                id: card._id,
+                name: card.name,
+                type: card.type,
+                network: card.network,
+                currency: card.currency,
+                last4: card.last4,
+                balance: card.balance,
+                creditLimit: card.creditLimit,
+                color: card.color,
+                isActive: card.isActive,
+                isVirtual: card.isVirtual,
+                createdAt: card.createdAt,
+            },
+        });
+
+    } catch (error) {
+        console.error(
+            "Activate card error:",
             error
         );
 

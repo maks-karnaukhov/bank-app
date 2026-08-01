@@ -22,23 +22,12 @@ export default function OrderPhysicalCardModal({
     onClose,
     onCreated,
 }: OrderPhysicalCardModalProps) {
-    const [city, setCity] =
-        useState("Saint Petersburg");
-
-    const [street, setStreet] =
-        useState("");
-
-    const [house, setHouse] =
-        useState("");
-
-    const [apartment, setApartment] =
-        useState("");
-
-    const [loading, setLoading] =
-        useState(false);
-
-    const [error, setError] =
-        useState<string | null>(null);
+    const [city, setCity] = useState("");
+    const [street, setStreet] = useState("");
+    const [house, setHouse] = useState("");
+    const [apartment, setApartment] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async () => {
         if (

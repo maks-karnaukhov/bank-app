@@ -5,7 +5,8 @@ import {
     createVirtualCard,
     getCardById,
     revealCardDetails,
-    getCardRevealStatus
+    getCardRevealStatus,
+    activateCard
 } from "../controllers/cardController";
 
 import {
@@ -24,6 +25,12 @@ router.post(
     "/virtual",
     authMiddleware,
     createVirtualCard
+);
+
+router.post(
+    "/:id/activate",
+    authMiddleware,
+    activateCard
 );
 
 router.get(

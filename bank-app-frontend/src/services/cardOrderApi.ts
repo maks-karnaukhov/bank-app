@@ -23,6 +23,8 @@ export interface CardOrder {
     specialistName: string | null;
     scheduledAt: string | null;
     deliveredAt?: string | null;
+    activatedAt?: string | null;
+    cardId?: string | null;
 }
 
 export interface CreateCardOrderData {
@@ -35,6 +37,17 @@ export interface CreateCardOrderData {
 export interface ScheduleCardOrderData {
     specialistName: string;
     scheduledAt: string;
+}
+
+export interface DeliverCardOrderResponse {
+    id: string;
+    type: "PHYSICAL";
+    status: "DELIVERED";
+    deliveryAddress: CardOrderAddress;
+    specialistName: string | null;
+    scheduledAt: string | null;
+    deliveredAt: string | null;
+    cardId: string;
 }
 
 export const getCurrentCardOrder = () =>
@@ -55,6 +68,13 @@ export const scheduleCardOrder = (
     data: ScheduleCardOrderData
 ) =>
     api.patch<CardOrder>(
-        `/card-orders/${id}/schedule`,
+        `/api/card-orders/${id}/schedule`,
         data
+    );
+
+export const deliverCardOrder = (
+    id: string
+) =>
+    api.patch<DeliverCardOrderResponse>(
+        `/api/card-orders/${id}/deliver`
     );
