@@ -1,0 +1,165 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.modal {
+    width: 100%;
+    max-width: 460px;
+    padding: 28px;
+    background: white;
+    border-radius: 20px;
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.25);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.close {
+    border: none;
+    background: transparent;
+    font-size: 30px;
+    line-height: 1;
+    cursor: pointer;
+    color: #666;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.description {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+}
+
+.input:focus {
+    border-color: #2563eb;
+}
+
+.error {
+    margin: 0;
+    color: #dc2626;
+    font-size: 14px;
+}
+
+.primaryButton,
+.secondaryButton {
+    width: 100%;
+    padding: 13px 16px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.primaryButton {
+    border: none;
+    background: #2563eb;
+    color: white;
+}
+
+.primaryButton:hover {
+    background: #1d4ed8;
+}
+
+.primaryButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.secondaryButton {
+    margin-top: 8px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #111827;
+}
+
+.details {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field span {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.field strong {
+    color: #111827;
+    font-size: 18px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.info {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.info span {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #374151;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.attempts {
+    margin: 10px 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.blocked {
+    margin: 12px 0;
+    padding: 12px;
+    border-radius: 10px;
+    background: #fff1f1;
+    color: #c62828;
+    font-size: 14px;
+    line-height: 1.5;
+}

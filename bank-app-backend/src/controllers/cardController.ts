@@ -3,6 +3,7 @@ import { Response } from "express";
 
 import Card from "../models/Card";
 import User from "../models/User";
+import CardRevealAttempt from "../models/CardRevealAttempt";
 
 import {
     encrypt,
@@ -346,13 +347,16 @@ export const getCardById = async (
 };
 
 export const revealCardDetails = async (
-    req: AuthRequest,
-    res: Response
+req: AuthRequest,
+res: Response
 ) => {
     try {
         const userId = req.userId;
         const { id } = req.params;
         const { password } = req.body;
+
+        const MAX_ATTEMPTS = 5;
+        const BLOCK_DURATION_MS = 15 * 60 * 1000;
 
         if (!userId) {
             return res.status(401).json({
@@ -363,28 +367,6 @@ export const revealCardDetails = async (
         if (!password) {
             return res.status(400).json({
                 message: "Password is required",
-            });
-        }
-
-        const user = await User.findById(
-            userId
-        );
-
-        if (!user) {
-            return res.status(404).json({
-                message: "User not found",
-            });
-        }
-
-        const isPasswordValid =
-            await bcrypt.compare(
-                password,
-                user.passwordHash
-            );
-
-        if (!isPasswordValid) {
-            return res.status(403).json({
-                message: "Invalid password",
             });
         }
 
@@ -399,9 +381,92 @@ export const revealCardDetails = async (
             });
         }
 
-        const cardNumber = decrypt(card.encryptedNumber);
-        const expiryDate = decrypt(card.encryptedExpiryDate);
-        const cvv = decrypt(card.encryptedCvv);
+        let attempt = await CardRevealAttempt.findOne({
+            userId,
+            cardId: card._id,
+        });
+
+        if (!attempt) {
+            attempt = await CardRevealAttempt.create({
+                userId,
+                cardId: card._id,
+                attemptsLeft: MAX_ATTEMPTS,
+                blockedUntil: null,
+            });
+        }
+
+        if (
+            attempt.blockedUntil &&
+            attempt.blockedUntil > new Date()
+        ) {
+            return res.status(429).json({
+                code: "CARD_REVEAL_BLOCKED",
+                message:
+                "Too many incorrect attempts. Try again later.",
+                retryAt: attempt.blockedUntil,
+                attemptsLeft: 0,
+            });
+        }
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+            });
+        }
+
+        const isPasswordValid = await bcrypt.compare(
+            password,
+            user.passwordHash
+        );
+
+        if (!isPasswordValid) {
+            attempt.attemptsLeft -= 1;
+
+            if (attempt.attemptsLeft <= 0) {
+                const blockedUntil = new Date(
+                    Date.now() + BLOCK_DURATION_MS
+                );
+
+                attempt.attemptsLeft = 0;
+                attempt.blockedUntil = blockedUntil;
+
+                await attempt.save();
+
+                return res.status(429).json({
+                    code: "CARD_REVEAL_BLOCKED",
+                    message: "Too many incorrect attempts. Try again later.",
+                    retryAt: blockedUntil,
+                    attemptsLeft: 0,
+                });
+            }
+
+            await attempt.save();
+
+            return res.status(401).json({
+                code: "INVALID_PASSWORD",
+                message: "Invalid password",
+                attemptsLeft: attempt.attemptsLeft,
+            });
+        }
+
+        attempt.attemptsLeft = MAX_ATTEMPTS;
+        attempt.blockedUntil = null;
+
+        await attempt.save();
+
+        const cardNumber = decrypt(
+            card.encryptedNumber
+        );
+
+        const expiryDate = decrypt(
+            card.encryptedExpiryDate
+        );
+
+        const cvv = decrypt(
+            card.encryptedCvv
+        );
 
         return res.status(200).json({
             id: card._id,
@@ -421,6 +486,74 @@ export const revealCardDetails = async (
     } catch (error) {
         console.error(
             "Reveal card details error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+
+    }
+};
+
+export const getCardRevealStatus = async (
+    req: AuthRequest,
+    res: Response
+) => {
+    try {
+        const userId = req.userId;
+        const { id } = req.params;
+
+        const MAX_ATTEMPTS = 5;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        const card = await Card.findOne({
+            _id: id,
+            userId,
+        });
+
+        if (!card) {
+            return res.status(404).json({
+                message: "Card not found",
+            });
+        }
+
+        const attempt =
+            await CardRevealAttempt.findOne({
+                userId,
+                cardId: card._id,
+            });
+
+        if (!attempt) {
+            return res.status(200).json({
+                attemptsLeft: MAX_ATTEMPTS,
+                blockedUntil: null,
+            });
+        }
+
+        if (
+            attempt.blockedUntil &&
+            attempt.blockedUntil <= new Date()
+        ) {
+            attempt.blockedUntil = null;
+            attempt.attemptsLeft = MAX_ATTEMPTS;
+
+            await attempt.save();
+        }
+
+        return res.status(200).json({
+            attemptsLeft: attempt.attemptsLeft,
+            blockedUntil: attempt.blockedUntil,
+        });
+
+    } catch (error) {
+        console.error(
+            "Get card reveal status error:",
             error
         );
 

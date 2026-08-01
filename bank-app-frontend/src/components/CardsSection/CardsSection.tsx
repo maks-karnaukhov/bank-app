@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import styles from "./CardsSection.module.css";
@@ -15,8 +15,10 @@ import {
 } from "@/features/cards/cardsSlice";
 
 import CardItem from "../CardItem/CardItem";
+import CardDetailsModal from "../CardDetailsModal/CardDetailsModal";
 
 export default function CardsSection() {
+    const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
     const dispatch =
         useDispatch<AppDispatch>();
@@ -55,10 +57,18 @@ export default function CardsSection() {
                     <CardItem
                         key={card.id}
                         card={card}
+                        onClick={() => setSelectedCardId(card.id) }
                     />
                 ))}
 
             </div>
+
+            {selectedCardId && ( 
+                <CardDetailsModal 
+                    cardId={selectedCardId} 
+                    onClose={() => setSelectedCardId(null) } 
+                /> 
+            )}
         </section>
     );
 }

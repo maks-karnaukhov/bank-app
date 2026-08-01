@@ -2,10 +2,10 @@ import express from "express";
 
 import {
     getCards,
-    getCardDetails,
     createVirtualCard,
     getCardById,
-    revealCardDetails
+    revealCardDetails,
+    getCardRevealStatus
 } from "../controllers/cardController";
 
 import {
@@ -21,21 +21,9 @@ router.get(
 );
 
 router.post(
-    "//details",
-    authMiddleware,
-    getCardDetails
-);
-
-router.post(
     "/virtual",
     authMiddleware,
     createVirtualCard
-);
-
-router.post(
-    "/:cardId/details",
-    authMiddleware,
-    getCardDetails
 );
 
 router.get(
@@ -48,6 +36,12 @@ router.post(
     "/:id/reveal",
     authMiddleware,
     revealCardDetails
+);
+
+router.get(
+    "/:id/reveal-status",
+    authMiddleware,
+    getCardRevealStatus
 );
 
 export default router;

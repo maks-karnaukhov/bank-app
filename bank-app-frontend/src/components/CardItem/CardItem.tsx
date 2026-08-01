@@ -6,10 +6,12 @@ import type {
 
 interface IProps {
     card: Card;
+    onClick: () => void;
 }
 
 export default function CardItem({
     card,
+    onClick
 }: IProps) {
     return (
         <div
@@ -17,6 +19,7 @@ export default function CardItem({
             style={{
                 backgroundColor: card.color,
             }}
+            onClick={onClick}
         >
             <div className={styles.top}>
                 <span className={styles.type}>
