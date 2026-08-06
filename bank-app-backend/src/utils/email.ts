@@ -100,7 +100,12 @@ export const sendOtpEmail = async (to: string, otp: string) => {
     `,
   });
 
-  console.log(result);
+  console.log("RESEND RESULT:", result);
+
+  if (result.error) {
+      console.error("RESEND ERROR:", result.error);
+      throw new Error(result.error.message);
+  }
 
   return result;
 };

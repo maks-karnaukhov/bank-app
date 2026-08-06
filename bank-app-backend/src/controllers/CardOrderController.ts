@@ -364,3 +364,98 @@ export const deliverCardOrder = async (
         });
     }
 };
+
+export const activateCardOrder = async (
+    req: AuthRequest,
+    res: Response
+) => {
+    try {
+        const userId = req.userId;
+        const { id } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        if (!id) {
+            return res.status(400).json({
+                message: "Order ID is required",
+            });
+        }
+
+        const order = await CardOrder.findOne({
+            _id: id,
+            userId,
+        });
+
+        if (!order) {
+            return res.status(404).json({
+                message: "Card order not found",
+            });
+        }
+
+        if (order.status !== "DELIVERED") {
+            return res.status(400).json({
+                message:
+                    "Card order cannot be activated in its current status",
+            });
+        }
+
+        if (!order.cardId) {
+            return res.status(400).json({
+                message: "Physical card is not issued",
+            });
+        }
+
+        const card = await Card.findOne({
+            _id: order.cardId,
+            userId,
+            isVirtual: false,
+        });
+
+        if (!card) {
+            return res.status(404).json({
+                message: "Physical card not found",
+            });
+        }
+
+        if (card.isActive) {
+            return res.status(400).json({
+                message: "Physical card is already active",
+            });
+        }
+
+        card.isActive = true;
+
+        await card.save();
+
+        order.status = "ACTIVATED";
+        order.activatedAt = new Date();
+
+        await order.save();
+
+        return res.status(200).json({
+            id: order._id,
+            type: order.type,
+            status: order.status,
+            deliveryAddress: order.deliveryAddress,
+            specialistName: order.specialistName,
+            scheduledAt: order.scheduledAt,
+            deliveredAt: order.deliveredAt,
+            activatedAt: order.activatedAt,
+            cardId: order.cardId,
+        });
+
+    } catch (error) {
+        console.error(
+            "Activate card order error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};

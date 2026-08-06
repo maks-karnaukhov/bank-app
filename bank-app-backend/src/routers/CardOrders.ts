@@ -4,7 +4,8 @@ import {
     createCardOrder,
     getCurrentCardOrder,
     scheduleCardOrder,
-    deliverCardOrder
+    deliverCardOrder,
+    activateCardOrder
 } from "../controllers/CardOrderController";
 
 import {
@@ -35,6 +36,12 @@ router.patch(
     "/:id/deliver",
     authMiddleware,
     deliverCardOrder
+);
+
+router.patch(
+    "/:id/activate",
+    authMiddleware,
+    activateCardOrder
 );
 
 export default router;
