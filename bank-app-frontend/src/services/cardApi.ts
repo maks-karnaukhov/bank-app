@@ -1,5 +1,24 @@
 import { api } from "./api";
 
+export interface Card {
+    id: string;
+    name: string;
+    type: "DEBIT" | "CREDIT";
+    network:
+    | "VISA"
+    | "MASTERCARD"
+    | "MIR"
+    | "AMEX";
+    currency: string;
+    last4: string;
+    balance: number;
+    creditLimit: number | null;
+    color: string;
+    isActive: boolean;
+    isVirtual: boolean;
+    createdAt: string;
+}
+
 export interface CardDetails {
     id: string;
     name: string;
@@ -34,24 +53,24 @@ export interface CardRevealStatus {
 }
 
 export const fetchCards = () =>
-    api.get("/cards");
+    api.get<Card[]>("/cards");
 
 export const fetchCardById = (
     id: string
 ) =>
-    api.get(`/cards/${id}`);
+    api.get<Card>(`/cards/${id}`);
 
 export const revealCardDetails = (
     id: string,
     password: string
 ) =>
-    api.post<CardDetails>(`/cards/${id}/reveal`, {
+    api.post<CardDetails>(`/cards/${id}/reveal`,
+    {
         password,
-    });
+    }
+);
 
 export const getCardRevealStatus = (
     id: string
 ) =>
-    api.get<CardRevealStatus>(
-        `/cards/${id}/reveal-status`
-    );
+    api.get<CardRevealStatus>(`/cards/${id}/reveal-status`);

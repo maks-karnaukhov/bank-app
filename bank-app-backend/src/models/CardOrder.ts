@@ -21,6 +21,11 @@ const CardOrderSchema = new mongoose.Schema(
             default: "PHYSICAL",
         },
 
+        cardColor: {
+            type: String,
+            required: true,
+        },
+
         status: {
             type: String,
             enum: [

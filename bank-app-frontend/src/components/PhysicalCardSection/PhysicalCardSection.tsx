@@ -4,50 +4,61 @@ import { useEffect, useState } from "react";
 import { isAxiosError } from "axios";
 
 import {
-    getCurrentCardOrder,
+getCurrentCardOrder,
 } from "@/services/cardOrderApi";
 
+import {
+fetchCards,
+} from "@/services/cardApi";
+
 import type {
-    CardOrder,
+CardOrder,
 } from "@/services/cardOrderApi";
 
 import OrderPhysicalCardModal
-    from "../OrderPhysicalCardModal/OrderPhysicalCardModal";
+from "../OrderPhysicalCardModal/OrderPhysicalCardModal";
 
 import styles from "./PhysicalCardSection.module.css";
 
+const MAX_PHYSICAL_CARDS = 5;
+
 export default function PhysicalCardSection() {
-    const [order, setOrder] =
-        useState<CardOrder | null>(null);
-
-    const [loading, setLoading] =
-        useState(true);
-
-    const [error, setError] =
-        useState<string | null>(null);
-
-    const [isModalOpen, setIsModalOpen] =
-        useState(false);
-
-    const loadOrder = async () => {
+    const [order, setOrder] = useState<CardOrder | null>(null);
+    const [physicalCardCount, setPhysicalCardCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const loadData = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            const response =
-                await getCurrentCardOrder();
+            const [
+                orderResponse,
+                cardsResponse,
+            ] = await Promise.all([
+                getCurrentCardOrder(),
+                fetchCards(),
+            ]);
 
-            setOrder(response.data);
+            setOrder(orderResponse.data);
+
+            const physicalCards =
+                cardsResponse.data.filter(
+                    (card) =>
+                        !card.isVirtual
+                );
+
+            setPhysicalCardCount(physicalCards.length);
         } catch (error) {
             if (isAxiosError(error)) {
                 setError(
-                    error.response?.data?.message ||
-                    "Failed to load card order"
+                    error.response?.data
+                        ?.message ||
+                    "Failed to load physical card information"
                 );
             } else {
-                setError(
-                    "Failed to load card order"
-                );
+                setError("Failed to load physical card information");
             }
         } finally {
             setLoading(false);
@@ -55,7 +66,7 @@ export default function PhysicalCardSection() {
     };
 
     useEffect(() => {
-        loadOrder();
+        loadData();
     }, []);
 
     const handleOrderCreated = (
@@ -68,7 +79,9 @@ export default function PhysicalCardSection() {
     const formatDateTime = (
         value: string
     ) => {
-        return new Date(value).toLocaleString(
+        return new Date(
+            value
+        ).toLocaleString(
             "en-US",
             {
                 dateStyle: "long",
@@ -79,27 +92,49 @@ export default function PhysicalCardSection() {
 
     if (loading) {
         return (
-            <section className={styles.section}>
-                <p>Loading physical card...</p>
+            <section
+                className={
+                    styles.section
+                }
+            >
+                <p>
+                    Loading physical card...
+                </p>
             </section>
         );
     }
 
     if (error) {
         return (
-            <section className={styles.section}>
-                <div className={styles.card}>
+            <section
+                className={
+                    styles.section
+                }
+            >
+                <div
+                    className={
+                        styles.card
+                    }
+                >
                     <h2>
                         Physical card
                     </h2>
 
-                    <p className={styles.error}>
+                    <p
+                        className={
+                            styles.error
+                        }
+                    >
                         {error}
                     </p>
 
                     <button
-                        className={styles.secondaryButton}
-                        onClick={loadOrder}
+                        className={
+                            styles.secondaryButton
+                        }
+                        onClick={
+                            loadData
+                        }
                     >
                         Try again
                     </button>
@@ -108,11 +143,46 @@ export default function PhysicalCardSection() {
         );
     }
 
+    const maxCardsReached = physicalCardCount >= MAX_PHYSICAL_CARDS;
+
     return (
         <>
-            <section className={styles.section}>
-                <div className={styles.card}>
-                    {!order ? (
+            <section
+                className={
+                    styles.section
+                }
+            >
+                <div
+                    className={
+                        styles.card
+                    }
+                >
+                    {maxCardsReached ? (
+                        <>
+                            <div>
+                                <p
+                                    className={
+                                        styles.eyebrow
+                                    }
+                                >
+                                    Physical cards
+                                </p>
+
+                                <h2>
+                                    Maximum number of cards reached
+                                </h2>
+
+                                <p
+                                    className={
+                                        styles.description
+                                    }
+                                >
+                                    You already have the maximum
+                                    number of physical cards allowed.
+                                </p>
+                            </div>
+                        </>
+                    ) : !order ? (
                         <>
                             <div>
                                 <p
@@ -144,7 +214,9 @@ export default function PhysicalCardSection() {
                                     styles.primaryButton
                                 }
                                 onClick={() =>
-                                    setIsModalOpen(true)
+                                    setIsModalOpen(
+                                        true
+                                    )
                                 }
                             >
                                 Order physical card
@@ -181,7 +253,7 @@ export default function PhysicalCardSection() {
                                     "DELIVERY_SCHEDULED"
                                         ? "Delivery scheduled"
                                         : order.status ===
-                                          "DELIVERED"
+                                        "DELIVERED"
                                         ? "Delivered"
                                         : "Processing"}
                                 </span>
@@ -283,7 +355,9 @@ export default function PhysicalCardSection() {
             {isModalOpen && (
                 <OrderPhysicalCardModal
                     onClose={() =>
-                        setIsModalOpen(false)
+                        setIsModalOpen(
+                            false
+                        )
                     }
                     onCreated={
                         handleOrderCreated
@@ -292,4 +366,5 @@ export default function PhysicalCardSection() {
             )}
         </>
     );
+
 }

@@ -18,6 +18,33 @@ interface OrderPhysicalCardModalProps {
     onCreated: (order: CardOrder) => void;
 }
 
+const CARD_COLORS = [
+    {
+        name: "Blue",
+        value: "#2563eb",
+    },
+    {
+        name: "Black",
+        value: "#111827",
+    },
+    {
+        name: "Purple",
+        value: "#7c3aed",
+    },
+    {
+        name: "Green",
+        value: "#059669",
+    },
+    {
+        name: "Red",
+        value: "#dc2626",
+    },
+    {
+        name: "Orange",
+        value: "#ea580c",
+    },
+];
+
 export default function OrderPhysicalCardModal({
     onClose,
     onCreated,
@@ -26,6 +53,7 @@ export default function OrderPhysicalCardModal({
     const [street, setStreet] = useState("");
     const [house, setHouse] = useState("");
     const [apartment, setApartment] = useState("");
+    const [cardColor, setCardColor] = useState("#2563eb");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -53,6 +81,7 @@ export default function OrderPhysicalCardModal({
                     street: street.trim(),
                     house: house.trim(),
                     apartment: apartment.trim(),
+                    cardColor,
                 });
 
             onCreated(response.data);
@@ -189,6 +218,84 @@ export default function OrderPhysicalCardModal({
                                     placeholder="Apartment"
                                 />
                             </label>
+                        </div>
+
+                        <div
+                            className={
+                                styles.colorSection
+                            }
+                        >
+                            <span
+                                className={
+                                    styles.colorLabel
+                                }
+                            >
+                                Card color
+                            </span>
+
+                            <div
+                                className={
+                                    styles.colorOptions
+                                }
+                            >
+                                {CARD_COLORS.map(
+                                    (color) => (
+                                        <button
+                                            key={
+                                                color.value
+                                            }
+                                            type="button"
+                                            className={`${styles.colorOption} ${
+                                                cardColor ===
+                                                color.value
+                                                    ? styles.selectedColor
+                                                    : ""
+                                            }`}
+                                            style={{
+                                                backgroundColor:
+                                                    color.value,
+                                            }}
+                                            onClick={() =>
+                                                setCardColor(
+                                                    color.value
+                                                )
+                                            }
+                                            aria-label={`Select ${color.name} card`}
+                                            title={
+                                                color.name
+                                            }
+                                        />
+                                    )
+                                )}
+                            </div>
+
+                            <div
+                                className={
+                                    styles.preview
+                                }
+                            >
+                                <span>
+                                    Preview
+                                </span>
+
+                                <div
+                                    className={
+                                        styles.previewCard
+                                    }
+                                    style={{
+                                        backgroundColor:
+                                            cardColor,
+                                    }}
+                                >
+                                    <span>
+                                        Betta-Bank
+                                    </span>
+
+                                    <span>
+                                        **** **** **** 0000
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

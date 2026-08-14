@@ -20,6 +20,7 @@ export interface CardOrder {
     type: "PHYSICAL";
     status: CardOrderStatus;
     deliveryAddress: CardOrderAddress;
+    cardColor: string;
     specialistName: string | null;
     scheduledAt: string | null;
     deliveredAt?: string | null;
@@ -32,6 +33,7 @@ export interface CreateCardOrderData {
     street: string;
     house: string;
     apartment: string;
+    cardColor: string;
 }
 
 export interface ScheduleCardOrderData {
@@ -44,6 +46,7 @@ export interface DeliverCardOrderResponse {
     type: "PHYSICAL";
     status: "DELIVERED";
     deliveryAddress: CardOrderAddress;
+    cardColor: string;
     specialistName: string | null;
     scheduledAt: string | null;
     deliveredAt: string | null;
