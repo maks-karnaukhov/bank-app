@@ -9,7 +9,9 @@ import {
     activateCard,
     freezeCard,
     unfreezeCard,
-    closeCard
+    closeCard,
+    replaceCardDetails,
+    setCardPin,
 } from "../controllers/cardController";
 
 import {
@@ -70,6 +72,18 @@ router.get(
     "/:id/reveal-status",
     authMiddleware,
     getCardRevealStatus
+);
+
+router.post(
+    "/:id/replace",
+    authMiddleware,
+    replaceCardDetails
+);
+
+router.post(
+    "/:id/pin",
+    authMiddleware,
+    setCardPin
 );
 
 export default router;

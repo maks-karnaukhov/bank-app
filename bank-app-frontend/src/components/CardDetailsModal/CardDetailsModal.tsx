@@ -7,6 +7,8 @@ import { useDispatch, useSelector } from "react-redux";
 import {
     revealCardDetails,
     getCardRevealStatus,
+    replaceCardDetails,
+    setCardPin,
     type CardDetails,
     type CardRevealError,
 } from "@/services/cardApi";
@@ -16,6 +18,7 @@ import {
     unfreezeCardThunk,
     closeCardThunk,
     fetchCardsThunk,
+    setCardPinThunk,
 } from "@/features/cards/cardsSlice";
 
 import type {
@@ -25,6 +28,9 @@ import type {
 
 import styles from "./CardDetails.module.css";
 import CloseCardModal from "../CloseCardModal/CloseCardModal";
+import ReplaceCardModal from "../ReplaceCardModal/ReplaceCardModal";
+import ManagePinModal from "../ManagePinModal/ManagePinModal";
+import PinSuccessModal from "../PinSuccessModal/PinSuccessModal";
 
 interface CardDetailsModalProps {
     cardId: string;
@@ -53,13 +59,19 @@ export default function CardDetailsModal({
     const [attemptsLeft, setAttemptsLeft] = useState<number | null>(null);
     const [blockedUntil, setBlockedUntil] = useState<string | null>(null);
     const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+    const [isReplaceModalOpen, setIsReplaceModalOpen] = useState(false);
+    const [replaceLoading, setReplaceLoading] = useState(false);
+    const [replaceError, setReplaceError] = useState<string | null>(null);
+    const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+    const [pinLoading, setPinLoading] = useState(false);
+    const [pinError, setPinError] = useState<string | null>(null);
+    const [isPinSuccessModalOpen, setIsPinSuccessModalOpen] = useState(false);
 
     useEffect(() => {
         const loadRevealStatus =
             async () => {
                 try {
-                    const response =
-                        await getCardRevealStatus(cardId);
+                    const response = await getCardRevealStatus(cardId);
 
                     setAttemptsLeft(response.data.attemptsLeft);
                     setBlockedUntil(response.data.blockedUntil);
@@ -177,6 +189,48 @@ export default function CardDetailsModal({
         }
     };
 
+    const handleReplaceCard = async (
+        password: string
+    ) => {
+        try {
+            setReplaceLoading(true);
+            setReplaceError(null);
+
+            await replaceCardDetails(
+                cardId,
+                password
+            );
+
+            await dispatch(fetchCardsThunk()).unwrap();
+
+            setIsReplaceModalOpen(false);
+            setDetails(null);
+            setPassword("");
+            setAttemptsLeft(5);
+            setBlockedUntil(null);
+
+        } catch (error) {
+            if (
+                isAxiosError<CardRevealError>(
+                    error
+                )
+            ) {
+                const data = error.response?.data;
+
+                setReplaceError(
+                    data?.message ||
+                    "Failed to replace card details"
+                );
+            } else {
+                setReplaceError(
+                    "Failed to replace card details"
+                );
+            }
+        } finally {
+            setReplaceLoading(false);
+        }
+    };
+
     const handleToggleFreeze = async () => {
         try {
             setError(null);
@@ -194,6 +248,39 @@ export default function CardDetailsModal({
                     ? "Failed to unfreeze card"
                     : "Failed to freeze card"
             );
+        }
+    };
+
+    const handleSetPin = async (
+        pin: string,
+        password: string
+    ) => {
+        try {
+            setPinLoading(true);
+            setPinError(null);
+
+            await dispatch(
+                setCardPinThunk({
+                    id: cardId,
+                    pin,
+                    password,
+                })
+            ).unwrap();
+
+            setIsPinModalOpen(false);
+            setPinError(null);
+            setIsPinSuccessModalOpen(true);
+        } catch (error) {
+            if (isAxiosError(error)) {
+                setPinError(
+                    error.response?.data?.message ||
+                    "Failed to update PIN"
+                );
+            } else {
+                setPinError("Failed to update PIN");
+            }
+        } finally {
+            setPinLoading(false);
         }
     };
 
@@ -311,12 +398,38 @@ export default function CardDetailsModal({
                         {card && !card.isClosed && (
                             <button
                                 className={styles.secondaryButton}
+                                onClick={() => {
+                                    setPinError(null);
+                                    setIsPinModalOpen(true);
+                                }}
+                            >
+                                {card?.pinSet
+                                    ? "Manage PIN"
+                                    : "Set PIN"}
+                            </button>
+                        )}
+                        {card && !card.isClosed && (
+                            <button
+                                className={styles.secondaryButton}
                                 onClick={handleToggleFreeze}
                             >
                                 {card.isFrozen
                                     ? "Unfreeze card"
                                     : "Freeze card"}
                             </button>
+                        )}
+                        {card &&
+                            card.isVirtual &&
+                            !card.isClosed && (
+                                <button
+                                    className={styles.secondaryButton}
+                                    onClick={() => {
+                                        setReplaceError(null);
+                                        setIsReplaceModalOpen(true);
+                                    }}
+                                >
+                                    Replace card details
+                                </button>
                         )}
                         {card &&
                             !card.isVirtual &&
@@ -334,6 +447,38 @@ export default function CardDetailsModal({
                                 onConfirm={handleCloseCard}
                                 onCancel={() => setIsCloseModalOpen(false)}
                                 loading={actionLoading}
+                            />
+                        )}
+                        {isReplaceModalOpen && (
+                            <ReplaceCardModal
+                                onConfirm={handleReplaceCard}
+                                onCancel={() => {
+                                    if (!replaceLoading) {
+                                        setIsReplaceModalOpen(false);
+                                    }
+                                }}
+                                loading={replaceLoading}
+                                error={replaceError}
+                            />
+                        )}
+                        {isPinModalOpen && (
+                            <ManagePinModal
+                                pinSet={Boolean(card?.pinSet)}
+                                onConfirm={handleSetPin}
+                                onCancel={() => {
+                                    if (!pinLoading) {
+                                        setIsPinModalOpen(false);
+                                    }
+                                }}
+                                loading={pinLoading}
+                                error={pinError}
+                            />
+                        )}
+                        {isPinSuccessModalOpen && (
+                            <PinSuccessModal
+                                onClose={() =>
+                                    setIsPinSuccessModalOpen(false)
+                                }
                             />
                         )}
                     </div>
@@ -452,14 +597,6 @@ export default function CardDetailsModal({
                                             : "Freeze card"}
                                     </button>
                                 )}
-
-                                <button
-                                    className={styles.dangerButton}
-                                    onClick={handleCloseCard}
-                                    disabled={actionLoading}
-                                >
-                                    Close card
-                                </button>
                             </div>
                         )}
 

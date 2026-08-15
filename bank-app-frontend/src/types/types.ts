@@ -28,6 +28,7 @@ export interface Card {
     isFrozen: boolean;
     isClosed: boolean;
     isVirtual: boolean;
+    pinSet: boolean;
     createdAt: string;
     network:
         | "VISA"

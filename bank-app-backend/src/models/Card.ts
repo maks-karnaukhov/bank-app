@@ -98,6 +98,11 @@ const CardSchema = new mongoose.Schema(
         required: true,
     },
 
+    pinHash: {
+        type: String,
+        default: null,
+    },
+
     isVirtual: {
         type: Boolean,
         default: true,

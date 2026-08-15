@@ -8,6 +8,7 @@ import {
   freezeCard,
   unfreezeCard,
   closeCard,
+  setCardPin,
 } from "@/services/cardApi";
 
 import type {
@@ -57,6 +58,27 @@ export const closeCardThunk = createAsyncThunk(
   "cards/closeCard",
   async (id: string) => {
     const response = await closeCard(id);
+
+    return response.data;
+  }
+);
+
+export const setCardPinThunk = createAsyncThunk(
+  "cards/setCardPin",
+  async ({
+    id,
+    pin,
+    password,
+  }: {
+    id: string;
+    pin: string;
+    password: string;
+  }) => {
+    const response = await setCardPin(
+      id,
+      pin,
+      password
+    );
 
     return response.data;
   }
@@ -184,7 +206,37 @@ const cardsSlice = createSlice({
             action.error.message ||
             "Failed to close card";
         }
-      );
+      )
+
+      .addCase(
+          setCardPinThunk.fulfilled,
+          (state, action) => {
+              const cardId =
+                  action.meta.arg.id;
+
+              const index =
+                  state.cards.findIndex(
+                      (card) =>
+                          card.id === cardId
+                  );
+
+              if (index !== -1) {
+                  state.cards[index] = {
+                      ...state.cards[index],
+                      pinSet: true,
+                  };
+              }
+          }
+      )
+
+      .addCase(
+        setCardPinThunk.rejected,
+        (state, action) => {
+          state.error =
+            action.error.message ||
+            "Failed to set PIN";
+        }
+      )
   },
 });
 

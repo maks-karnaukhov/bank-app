@@ -1,0 +1,159 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.modal {
+    width: 100%;
+    max-width: 460px;
+    padding: 28px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #111827;
+}
+
+.close {
+    border: none;
+    background: transparent;
+    font-size: 30px;
+    line-height: 1;
+    color: #666;
+    cursor: pointer;
+}
+
+.close:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.description {
+    margin: 0;
+    color: #4b5563;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+}
+
+.input:focus {
+    border-color: #2563eb;
+}
+
+.input:disabled {
+    background: #f3f4f6;
+    cursor: not-allowed;
+}
+
+.error {
+    margin: 0;
+    color: #dc2626;
+    font-size: 14px;
+}
+
+.actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.cancelButton,
+.confirmButton {
+    padding: 13px 16px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cancelButton {
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #111827;
+}
+
+.confirmButton {
+    border: none;
+    background: #2563eb;
+    color: white;
+}
+
+.confirmButton:hover {
+    background: #1d4ed8;
+}
+
+.cancelButton:disabled,
+.confirmButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.pinContainer {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 8px 0;
+}
+
+.pinInput {
+    width: 56px;
+    height: 56px;
+    box-sizing: border-box;
+
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+
+    background: white;
+
+    color: #111827;
+
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+
+    outline: none;
+}
+
+.pinInput:focus {
+    border-color: #2563eb;
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.pinInput:disabled {
+    background: #f3f4f6;
+    cursor: not-allowed;
+}

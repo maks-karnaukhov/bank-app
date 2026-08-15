@@ -71,3 +71,27 @@ export const closeCard = (
     id: string
 ) =>
     api.post(`/cards/${id}/close`);
+
+export const replaceCardDetails = (
+    id: string,
+    password: string
+) =>
+    api.post(
+        `/cards/${id}/replace`,
+        {
+            password,
+        }
+    );
+
+export const setCardPin = (
+    id: string,
+    pin: string,
+    password: string
+) =>
+    api.post(
+        `/cards/${id}/pin`,
+        {
+            pin,
+            password,
+        }
+    );

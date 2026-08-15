@@ -52,6 +52,7 @@ export const getCards = async (
                 isActive: card.isActive,
                 isFrozen: card.isFrozen,
                 isClosed: card.isClosed,
+                pinSet: Boolean(card.pinHash),
                 createdAt: card.createdAt,
                 network: card.network,
                 isVirtual: card.isVirtual,
@@ -331,6 +332,7 @@ export const getCardById = async (
             isActive: card.isActive,
             isFrozen: card.isFrozen,
             isClosed: card.isClosed,
+            pinSet: Boolean(card.pinHash),
             createdAt: card.createdAt,
             network: card.network,
             isVirtual: card.isVirtual,
@@ -905,6 +907,208 @@ export const closeCard = async (
     } catch (error) {
         console.error(
             "Close card error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};
+
+export const replaceCardDetails = async (
+    req: AuthRequest,
+    res: Response
+) => {
+    try {
+        const userId = req.userId;
+        const { id } = req.params;
+        const { password } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        if (!password) {
+            return res.status(400).json({
+                message: "Password is required",
+            });
+        }
+
+        const card = await Card.findOne({
+            _id: id,
+            userId,
+        });
+
+        if (!card) {
+            return res.status(404).json({
+                message: "Card not found",
+            });
+        }
+
+        if (!card.isVirtual) {
+            return res.status(400).json({
+                code: "PHYSICAL_CARD_REPLACEMENT_NOT_ALLOWED",
+                message: "Physical card details cannot be replaced this way",
+            });
+        }
+
+        if (card.isClosed) {
+            return res.status(400).json({
+                code: "CARD_CLOSED",
+                message: "Card is closed",
+            });
+        }
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+            });
+        }
+
+        const isPasswordValid =
+            await bcrypt.compare(
+                password,
+                user.passwordHash
+            );
+
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                code: "INVALID_PASSWORD",
+                message: "Invalid password",
+            });
+        }
+
+        const cardNumber = generateCardNumber();
+        const expiryDate = generateExpiryDate();
+        const cvv = generateCvv();
+
+        card.encryptedNumber = encrypt(cardNumber);
+        card.encryptedExpiryDate = encrypt(expiryDate);
+        card.encryptedCvv = encrypt(cvv);
+        card.last4 = cardNumber.slice(-4);
+
+        await card.save();
+
+        await CardRevealAttempt.findOneAndUpdate(
+            {
+                userId,
+                cardId: card._id,
+            },
+            {
+                attemptsLeft: 5,
+                blockedUntil: null,
+            }
+        );
+
+        return res.status(200).json({
+            message: "Card details replaced successfully",
+            card: {
+                id: card._id,
+                last4: card.last4,
+                isVirtual: card.isVirtual,
+            },
+        });
+    } catch (error) {
+        console.error(
+            "Replace card details error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};
+
+export const setCardPin = async (
+    req: AuthRequest,
+    res: Response
+) => {
+    try {
+        const userId = req.userId;
+        const { id } = req.params;
+        const { pin, password } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        if (!pin || !password) {
+            return res.status(400).json({
+                message: "PIN and password are required",
+            });
+        }
+
+        if (!/^\d{4}$/.test(pin)) {
+            return res.status(400).json({
+                code: "INVALID_PIN",
+                message: "PIN must contain exactly 4 digits",
+            });
+        }
+
+        const card = await Card.findOne({
+            _id: id,
+            userId,
+        });
+
+        if (!card) {
+            return res.status(404).json({
+                message: "Card not found",
+            });
+        }
+
+        if (card.isClosed) {
+            return res.status(400).json({
+                code: "CARD_CLOSED",
+                message: "Card is closed",
+            });
+        }
+
+        if (!card.isActive) {
+            return res.status(400).json({
+                code: "CARD_NOT_ACTIVE",
+                message: "Card is not active",
+            });
+        }
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+            });
+        }
+
+        const isPasswordValid =
+            await bcrypt.compare(
+                password,
+                user.passwordHash
+            );
+
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                code: "INVALID_PASSWORD",
+                message: "Invalid password",
+            });
+        }
+
+        card.pinHash = await bcrypt.hash(pin, 10);
+
+        await card.save();
+
+        return res.status(200).json({
+            message: "Card PIN updated successfully",
+        });
+    } catch (error) {
+        console.error(
+            "Set card PIN error:",
             error
         );
 
