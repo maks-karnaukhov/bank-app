@@ -6,7 +6,10 @@ import {
     getCardById,
     revealCardDetails,
     getCardRevealStatus,
-    activateCard
+    activateCard,
+    freezeCard,
+    unfreezeCard,
+    closeCard
 } from "../controllers/cardController";
 
 import {
@@ -31,6 +34,24 @@ router.post(
     "/:id/activate",
     authMiddleware,
     activateCard
+);
+
+router.post(
+    "/:id/freeze",
+    authMiddleware,
+    freezeCard
+);
+
+router.post(
+    "/:id/unfreeze",
+    authMiddleware,
+    unfreezeCard
+);
+
+router.post(
+    "/:id/close",
+    authMiddleware,
+    closeCard
 );
 
 router.get(

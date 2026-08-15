@@ -7,8 +7,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-shadow:
-        0 16px 35px rgba(0,0,0,.18);
+    box-shadow: 0 16px 35px rgba(0,0,0,.18);
     transition:
         transform .25s,
         box-shadow .25s;
@@ -17,8 +16,7 @@
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow:
-        0 24px 45px rgba(0,0,0,.25);
+    box-shadow: 0 24px 45px rgba(0,0,0,.25);
 }
 
 .top {
@@ -59,4 +57,19 @@
 .balance {
     font-size: 28px;
     font-weight: 700;
+}
+
+.frozen {
+    opacity: 0.65;
+    filter: grayscale(0.25);
+}
+
+.status {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.2);
 }

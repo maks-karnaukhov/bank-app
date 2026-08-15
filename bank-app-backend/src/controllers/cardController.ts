@@ -34,6 +34,7 @@ export const getCards = async (
 
         const cards = await Card.find({
             userId,
+            isClosed: false,
         }).sort({
             createdAt: -1,
         });
@@ -49,6 +50,8 @@ export const getCards = async (
                 creditLimit: card.creditLimit,
                 color: card.color,
                 isActive: card.isActive,
+                isFrozen: card.isFrozen,
+                isClosed: card.isClosed,
                 createdAt: card.createdAt,
                 network: card.network,
                 isVirtual: card.isVirtual,
@@ -326,6 +329,8 @@ export const getCardById = async (
             creditLimit: card.creditLimit,
             color: card.color,
             isActive: card.isActive,
+            isFrozen: card.isFrozen,
+            isClosed: card.isClosed,
             createdAt: card.createdAt,
             network: card.network,
             isVirtual: card.isVirtual,
@@ -604,6 +609,13 @@ export const activateCard = async (
             });
         }
 
+        if (card.isClosed) {
+            return res.status(400).json({
+                code: "CARD_CLOSED",
+                message: "Card is closed",
+            });
+        }
+
         if (card.isActive) {
             return res.status(400).json({
                 message:
@@ -675,6 +687,7 @@ export const activateCard = async (
                 creditLimit: card.creditLimit,
                 color: card.color,
                 isActive: card.isActive,
+                isFrozen: card.isFrozen,
                 isVirtual: card.isVirtual,
                 createdAt: card.createdAt,
             },
@@ -682,6 +695,216 @@ export const activateCard = async (
     } catch (error) {
         console.error(
             "Activate card error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};
+
+export const freezeCard = async (
+    req: AuthRequest,
+    res: Response
+) => {
+    try {
+        const userId = req.userId;
+        const { id } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        const card = await Card.findOne({
+            _id: id,
+            userId,
+        });
+
+        if (!card) {
+            return res.status(404).json({
+                message: "Card not found",
+            });
+        }
+
+        if (card.isFrozen) {
+            return res.status(400).json({
+                message: "Card is already frozen",
+            });
+        }
+
+        if (card.isClosed) {
+            return res.status(400).json({
+                code: "CARD_CLOSED",
+                message: "Card is closed",
+            });
+        }
+
+        if (!card.isActive) {
+            return res.status(400).json({
+                message: "Card is not active",
+            });
+        }
+
+        card.isFrozen = true;
+
+        await card.save();
+
+        return res.status(200).json({
+            message: "Card frozen successfully",
+            card: {
+                id: card._id,
+                isActive: card.isActive,
+                isFrozen: card.isFrozen,
+            },
+        });
+    } catch (error) {
+        console.error(
+            "Freeze card error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};
+
+export const unfreezeCard = async (
+    req: AuthRequest,
+    res: Response
+) => {
+    try {
+        const userId = req.userId;
+        const { id } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        const card = await Card.findOne({
+            _id: id,
+            userId,
+        });
+
+        if (!card) {
+            return res.status(404).json({
+                message: "Card not found",
+            });
+        }
+
+        if (!card.isFrozen) {
+            return res.status(400).json({
+                message: "Card is not frozen",
+            });
+        }
+
+        if (card.isClosed) {
+            return res.status(400).json({
+                code: "CARD_CLOSED",
+                message: "Card is closed",
+            });
+        }
+
+        if (!card.isActive) {
+            return res.status(400).json({
+                message: "Card is not active",
+            });
+        }
+
+        card.isFrozen = false;
+
+        await card.save();
+
+        return res.status(200).json({
+            message: "Card unfrozen successfully",
+            card: {
+                id: card._id,
+                isActive: card.isActive,
+                isFrozen: card.isFrozen,
+            },
+        });
+    } catch (error) {
+        console.error(
+            "Unfreeze card error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};
+
+export const closeCard = async (
+    req: AuthRequest,
+    res: Response
+) => {
+    try {
+        const userId = req.userId;
+        const { id } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        const card = await Card.findOne({
+            _id: id,
+            userId,
+        });
+
+        if (!card) {
+            return res.status(404).json({
+                message: "Card not found",
+            });
+        }
+
+        if (card.isClosed) {
+            return res.status(400).json({
+                code: "CARD_ALREADY_CLOSED",
+                message: "Card is already closed",
+            });
+        }
+
+        if (!card.isActive) {
+            return res.status(400).json({
+                code: "CARD_NOT_ACTIVE",
+                message: "Card is not active",
+            });
+        }
+
+        if (card.balance !== 0) {
+            return res.status(400).json({
+                code: "CARD_HAS_BALANCE",
+                message:
+                    "Card cannot be closed while it has a balance",
+            });
+        }
+
+        card.isActive = false;
+        card.isFrozen = false;
+        card.isClosed = true;
+
+        await card.save();
+
+        return res.status(200).json({
+            message: "Card closed successfully",
+            card: {
+                id: card._id,
+                isActive: card.isActive,
+                isFrozen: card.isFrozen,
+                isClosed: card.isClosed,
+            },
+        });
+    } catch (error) {
+        console.error(
+            "Close card error:",
             error
         );
 

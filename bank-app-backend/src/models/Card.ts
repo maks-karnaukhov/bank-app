@@ -27,6 +27,16 @@ const CardSchema = new mongoose.Schema(
         default: true,
     },
 
+    isFrozen: {
+        type: Boolean,
+        default: false,
+    },
+
+    isClosed: {
+        type: Boolean,
+        default: false,
+    },
+
     name: {
         type: String,
         default: "Main card",

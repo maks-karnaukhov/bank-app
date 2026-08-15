@@ -11,11 +11,15 @@ interface IProps {
 
 export default function CardItem({
     card,
-    onClick
+    onClick,
 }: IProps) {
+    const statusClass = card.isFrozen
+        ? styles.frozen
+        : "";
+
     return (
         <div
-            className={styles.card}
+            className={`${styles.card} ${statusClass}`}
             style={{
                 backgroundColor: card.color,
             }}
@@ -37,6 +41,12 @@ export default function CardItem({
                     {card.currency}
                 </span>
             </div>
+
+            {card.isFrozen && (
+                <span className={styles.status}>
+                    Frozen
+                </span>
+            )}
 
             <div className={styles.number}>
                 **** **** **** {card.last4}

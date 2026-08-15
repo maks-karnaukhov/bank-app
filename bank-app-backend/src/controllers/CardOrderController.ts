@@ -66,6 +66,7 @@ export const createCardOrder = async (
             await Card.countDocuments({
                 userId,
                 isVirtual: false,
+                isClosed: false,
             });
 
         if (
@@ -362,6 +363,7 @@ export const deliverCardOrder = async (
             await Card.countDocuments({
                 userId,
                 isVirtual: false,
+                isClosed: false,
             });
 
         if (

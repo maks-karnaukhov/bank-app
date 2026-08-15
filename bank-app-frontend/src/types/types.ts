@@ -25,11 +25,13 @@ export interface Card {
     creditLimit: number | null;
     color: string;
     isActive: boolean;
+    isFrozen: boolean;
+    isClosed: boolean;
     isVirtual: boolean;
     createdAt: string;
     network:
-      | "VISA"
-      | "MASTERCARD"
-      | "MIR"
-      | "AMEX";
+        | "VISA"
+        | "MASTERCARD"
+        | "MIR"
+        | "AMEX";
 }

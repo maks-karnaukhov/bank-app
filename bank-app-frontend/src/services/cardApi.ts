@@ -1,23 +1,5 @@
 import { api } from "./api";
-
-export interface Card {
-    id: string;
-    name: string;
-    type: "DEBIT" | "CREDIT";
-    network:
-    | "VISA"
-    | "MASTERCARD"
-    | "MIR"
-    | "AMEX";
-    currency: string;
-    last4: string;
-    balance: number;
-    creditLimit: number | null;
-    color: string;
-    isActive: boolean;
-    isVirtual: boolean;
-    createdAt: string;
-}
+import type { Card } from "@/types/types";
 
 export interface CardDetails {
     id: string;
@@ -74,3 +56,18 @@ export const getCardRevealStatus = (
     id: string
 ) =>
     api.get<CardRevealStatus>(`/cards/${id}/reveal-status`);
+
+export const freezeCard = (
+    id: string
+) =>
+    api.post(`/cards/${id}/freeze`);
+
+export const unfreezeCard = (
+    id: string
+) =>
+    api.post(`/cards/${id}/unfreeze`);
+
+export const closeCard = (
+    id: string
+) =>
+    api.post(`/cards/${id}/close`);
