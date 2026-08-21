@@ -5,18 +5,17 @@ import Card from "../models/Card";
 import User from "../models/User";
 
 import { AuthRequest } from "../middleware/authMiddleware";
+
 import {
     generateCardNumber,
     generateCvv,
     generateExpiryDate,
 } from "../utils/cardGenerator";
+
 import { encrypt } from "../utils/crypto";
+import { isValidHexColor } from "../utils/validation";
 
 const MAX_PHYSICAL_CARDS = 5;
-
-const isValidHexColor = (color: string) => {
-    return /^#[0-9A-Fa-f]{6}$/.test(color);
-};
 
 export const createCardOrder = async (
     req: AuthRequest,
@@ -75,8 +74,7 @@ export const createCardOrder = async (
         ) {
             return res.status(400).json({
                 code: "MAX_PHYSICAL_CARDS_REACHED",
-                message:
-                    "Maximum number of physical cards reached",
+                message: "Maximum number of physical cards reached",
             });
         }
 
@@ -104,9 +102,7 @@ export const createCardOrder = async (
             userId,
             type: "PHYSICAL",
             status: "ORDERED",
-
             cardColor,
-
             deliveryAddress: {
                 city,
                 street,
@@ -119,13 +115,10 @@ export const createCardOrder = async (
             id: order._id,
             type: order.type,
             status: order.status,
-            deliveryAddress:
-                order.deliveryAddress,
+            deliveryAddress: order.deliveryAddress,
             cardColor: order.cardColor,
-            specialistName:
-                order.specialistName,
-            scheduledAt:
-                order.scheduledAt,
+            specialistName: order.specialistName,
+            scheduledAt: order.scheduledAt,
         });
     } catch (error) {
     console.error(
@@ -146,6 +139,7 @@ export const getCurrentCardOrder = async (
 ) => {
     try {
         const userId = req.userId;
+        const { type } = req.query;
 
         if (!userId) {
             return res.status(401).json({
@@ -156,6 +150,10 @@ export const getCurrentCardOrder = async (
         const order =
             await CardOrder.findOne({
                 userId,
+                ...(type === "PHYSICAL" ||
+                type === "CREDIT"
+                    ? { type }
+                    : {}),
                 status: {
                     $in: [
                         "ORDERED",
@@ -176,30 +174,24 @@ export const getCurrentCardOrder = async (
             id: order._id,
             type: order.type,
             status: order.status,
-            deliveryAddress:
-                order.deliveryAddress,
+            deliveryAddress: order.deliveryAddress,
             cardColor: order.cardColor,
-            specialistName:
-                order.specialistName,
-            scheduledAt:
-                order.scheduledAt,
-            deliveredAt:
-                order.deliveredAt,
+            specialistName: order.specialistName,
+            scheduledAt: order.scheduledAt,
+            deliveredAt: order.deliveredAt,
             cardId: order.cardId,
-            activatedAt:
-                order.activatedAt,
+            activatedAt: order.activatedAt,
         });
     } catch (error) {
-    console.error(
-        "Get current card order error:",
-        error
-    );
+        console.error(
+            "Get current card order error:",
+            error
+        );
 
-    return res.status(500).json({
-        message: "Server error",
-    });
-}
-
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
 };
 
 export const scheduleCardOrder = async (
@@ -337,25 +329,19 @@ export const deliverCardOrder = async (
 
         if (!order) {
             return res.status(404).json({
-                message:
-                    "Card order not found",
+                message: "Card order not found",
             });
         }
 
-        if (
-            order.status !==
-            "DELIVERY_SCHEDULED"
-        ) {
+        if (order.status !== "DELIVERY_SCHEDULED") {
             return res.status(400).json({
-                message:
-                    "Card order cannot be delivered in its current status",
+                message: "Card order cannot be delivered in its current status",
             });
         }
 
         if (order.cardId) {
             return res.status(400).json({
-                message:
-                    "Card has already been issued",
+                message: "Card has already been issued",
             });
         }
 
@@ -371,10 +357,8 @@ export const deliverCardOrder = async (
             MAX_PHYSICAL_CARDS
         ) {
             return res.status(400).json({
-                code:
-                    "MAX_PHYSICAL_CARDS_REACHED",
-                message:
-                    "Maximum number of physical cards reached",
+                code: "MAX_PHYSICAL_CARDS_REACHED",
+                message: "Maximum number of physical cards reached",
             });
         }
 
@@ -390,10 +374,11 @@ export const deliverCardOrder = async (
         const expiryDate = generateExpiryDate();
         const cvv = generateCvv();
 
-        const card =
-            await Card.create({
+        const isCreditCard = order.type === "CREDIT";
+
+        const card = await Card.create({
                 userId,
-                type: "DEBIT",
+                type: isCreditCard ? "CREDIT" : "DEBIT",
                 currency: "USD",
                 isActive: false,
                 isVirtual: false,
@@ -405,7 +390,7 @@ export const deliverCardOrder = async (
                 encryptedExpiryDate: encrypt(expiryDate),
                 encryptedCvv: encrypt(cvv),
                 balance: 0,
-                creditLimit: null,
+                creditLimit: isCreditCard ? 5000 : null,
                 network: "VISA",
             });
 
@@ -543,4 +528,117 @@ export const activateCardOrder = async (
         });
     }
 
+};
+
+export const createCreditCard = async (
+    req: AuthRequest,
+    res: Response
+) => {
+    try {
+        const userId = req.userId;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        const {
+            city,
+            street,
+            house,
+            apartment,
+            cardColor,
+        } = req.body;
+
+        if (
+            !city ||
+            !street ||
+            !house ||
+            !apartment
+        ) {
+            return res.status(400).json({
+                message: "Delivery address is required",
+            });
+        }
+
+        if (!cardColor) {
+            return res.status(400).json({
+                message: "Card color is required",
+            });
+        }
+
+        if (!isValidHexColor(cardColor)) {
+            return res.status(400).json({
+                message: "Invalid card color",
+            });
+        }
+
+        const existingCreditCard =
+            await Card.findOne({
+                userId,
+                type: "CREDIT",
+                isClosed: false,
+            });
+
+        if (existingCreditCard) {
+            return res.status(400).json({
+                code: "CREDIT_CARD_ALREADY_EXISTS",
+                message: "Active credit card already exists",
+            });
+        }
+
+        const existingCreditOrder =
+            await CardOrder.findOne({
+                userId,
+                type: "CREDIT",
+                status: {
+                    $in: [
+                        "ORDERED",
+                        "PROCESSING",
+                        "DELIVERY_SCHEDULED",
+                        "DELIVERED",
+                    ],
+                },
+            });
+
+        if (existingCreditOrder) {
+            return res.status(400).json({
+                code: "CREDIT_CARD_ALREADY_EXISTS",
+                message: "Credit card order already exists",
+            });
+        }
+
+        const order = await CardOrder.create({
+            userId,
+            type: "CREDIT",
+            status: "ORDERED",
+            cardColor,
+            deliveryAddress: {
+                city: city.trim(),
+                street: street.trim(),
+                house: house.trim(),
+                apartment: apartment.trim(),
+            },
+        });
+
+        return res.status(201).json({
+            id: order._id,
+            type: order.type,
+            status: order.status,
+            deliveryAddress: order.deliveryAddress,
+            cardColor: order.cardColor,
+            specialistName: order.specialistName,
+            scheduledAt: order.scheduledAt,
+        });
+    } catch (error) {
+        console.error(
+            "Create credit card order error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
 };

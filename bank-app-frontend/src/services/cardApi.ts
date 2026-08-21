@@ -17,6 +17,8 @@ export interface CardDetails {
     holderName: string;
     balance: number;
     creditLimit: number | null;
+    usedCredit: number;
+    availableCredit: number | null;
     isVirtual: boolean;
 }
 

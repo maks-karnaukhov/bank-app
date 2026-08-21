@@ -2,10 +2,11 @@ import express from "express";
 
 import {
     createCardOrder,
+    createCreditCard,
     getCurrentCardOrder,
     scheduleCardOrder,
     deliverCardOrder,
-    activateCardOrder
+    activateCardOrder,
 } from "../controllers/CardOrderController";
 
 import {
@@ -24,6 +25,12 @@ router.post(
     "/",
     authMiddleware,
     createCardOrder
+);
+
+router.post(
+    "/credit",
+    authMiddleware,
+    createCreditCard
 );
 
 router.patch(

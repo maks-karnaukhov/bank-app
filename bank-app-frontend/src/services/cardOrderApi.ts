@@ -17,7 +17,7 @@ export interface CardOrderAddress {
 
 export interface CardOrder {
     id: string;
-    type: "PHYSICAL";
+    type: "PHYSICAL" | "CREDIT";
     status: CardOrderStatus;
     deliveryAddress: CardOrderAddress;
     cardColor: string;
@@ -53,9 +53,14 @@ export interface DeliverCardOrderResponse {
     cardId: string;
 }
 
-export const getCurrentCardOrder = () =>
+export const getCurrentCardOrder = (
+    type: "PHYSICAL" | "CREDIT"
+) =>
     api.get<CardOrder | null>(
-        "/api/card-orders/current"
+        "/api/card-orders/current",
+        {
+            params: type ? { type } : undefined,
+        }
     );
 
 export const createCardOrder = (
@@ -81,3 +86,18 @@ export const deliverCardOrder = (
     api.patch<DeliverCardOrderResponse>(
         `/api/card-orders/${id}/deliver`
     );
+
+export const createCreditCardOrder = (
+    data: {
+        city: string;
+        street: string;
+        house: string;
+        apartment: string;
+        cardColor: string;
+    }
+) => {
+    return api.post<CardOrder>(
+        "/api/card-orders/credit",
+        data
+    );
+};

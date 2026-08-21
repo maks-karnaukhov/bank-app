@@ -23,6 +23,8 @@ export interface Card {
     last4: string;
     balance: number;
     creditLimit: number | null;
+    usedCredit: number;
+    availableCredit: number | null;
     color: string;
     isActive: boolean;
     isFrozen: boolean;

@@ -20,15 +20,12 @@ import CardDetailsModal from "../CardDetailsModal/CardDetailsModal";
 export default function CardsSection() {
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
-    const dispatch =
-        useDispatch<AppDispatch>();
+    const dispatch = useDispatch<AppDispatch>();
 
-    const {
-        cards,
-        loading,
-        error,
-    } = useSelector(
-        (state: RootState) => state.cards
+    const { cards, loading, error } = useSelector((state: RootState) => state.cards);
+
+    const debitCards = cards.filter(
+        (card) => card.type === "DEBIT"
     );
 
     useEffect(() => {
@@ -52,15 +49,15 @@ export default function CardsSection() {
             )}
 
             <div className={styles.cards}>
-
-                {cards.map((card) => (
+                {debitCards.map((card) => (
                     <CardItem
                         key={card.id}
                         card={card}
-                        onClick={() => setSelectedCardId(card.id) }
+                        onClick={() =>
+                            setSelectedCardId(card.id)
+                        }
                     />
                 ))}
-
             </div>
 
             {selectedCardId && ( 

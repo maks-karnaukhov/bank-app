@@ -11,6 +11,10 @@ import {
   setCardPin,
 } from "@/services/cardApi";
 
+import {
+  createCreditCardOrder,
+} from "@/services/cardOrderApi";
+
 import type {
   Card,
 } from "@/types/types";
@@ -84,6 +88,21 @@ export const setCardPinThunk = createAsyncThunk(
   }
 );
 
+export const createCreditCardOrderThunk = createAsyncThunk(
+    "cards/createCreditCardOrder",
+    async (data: {
+        city: string;
+        street: string;
+        house: string;
+        apartment: string;
+        cardColor: string;
+    }) => {
+        const response = await createCreditCardOrder(data);
+
+        return response.data;
+    }
+);
+
 const cardsSlice = createSlice({
   name: "cards",
   initialState,
@@ -113,31 +132,22 @@ const cardsSlice = createSlice({
         fetchCardsThunk.rejected,
         (state, action) => {
           state.loading = false;
-          state.error =
-            action.error.message ||
-            "Failed to load cards";
+          state.error = action.error.message || "Failed to load cards"
         }
       )
 
       .addCase(
         freezeCardThunk.fulfilled,
         (state, action) => {
-          const updatedCard =
-            action.payload.card;
+          const updatedCard = action.payload.card;
 
-          const index =
-            state.cards.findIndex(
-              (card) =>
-                card.id === updatedCard.id
-            );
+          const index = state.cards.findIndex((card) => card.id === updatedCard.id);
 
           if (index !== -1) {
             state.cards[index] = {
               ...state.cards[index],
-              isActive:
-                updatedCard.isActive,
-              isFrozen:
-                updatedCard.isFrozen,
+              isActive: updatedCard.isActive,
+              isFrozen: updatedCard.isFrozen,
             };
           }
         }
@@ -146,31 +156,22 @@ const cardsSlice = createSlice({
       .addCase(
         freezeCardThunk.rejected,
         (state, action) => {
-          state.error =
-            action.error.message ||
-            "Failed to freeze card";
+          state.error = action.error.message || "Failed to freeze card";
         }
       )
 
       .addCase(
         unfreezeCardThunk.fulfilled,
         (state, action) => {
-          const updatedCard =
-            action.payload.card;
+          const updatedCard = action.payload.card;
 
-          const index =
-            state.cards.findIndex(
-              (card) =>
-                card.id === updatedCard.id
-            );
+          const index = state.cards.findIndex((card) => card.id === updatedCard.id);
 
           if (index !== -1) {
             state.cards[index] = {
               ...state.cards[index],
-              isActive:
-                updatedCard.isActive,
-              isFrozen:
-                updatedCard.isFrozen,
+              isActive: updatedCard.isActive,
+              isFrozen: updatedCard.isFrozen,
             };
           }
         }
@@ -179,46 +180,32 @@ const cardsSlice = createSlice({
       .addCase(
         unfreezeCardThunk.rejected,
         (state, action) => {
-          state.error =
-            action.error.message ||
-            "Failed to unfreeze card";
+          state.error = action.error.message || "Failed to unfreeze card";
         }
       )
 
       .addCase(
         closeCardThunk.fulfilled,
         (state, action) => {
-          const closedCardId =
-            action.payload.card.id;
+          const closedCardId = action.payload.card.id;
 
-          state.cards =
-            state.cards.filter(
-              (card) =>
-                card.id !== closedCardId
-            );
+          state.cards = state.cards.filter((card) => card.id !== closedCardId);
         }
       )
 
       .addCase(
         closeCardThunk.rejected,
         (state, action) => {
-          state.error =
-            action.error.message ||
-            "Failed to close card";
+          state.error = action.error.message || "Failed to close card";
         }
       )
 
       .addCase(
           setCardPinThunk.fulfilled,
           (state, action) => {
-              const cardId =
-                  action.meta.arg.id;
+              const cardId = action.meta.arg.id;
 
-              const index =
-                  state.cards.findIndex(
-                      (card) =>
-                          card.id === cardId
-                  );
+              const index = state.cards.findIndex((card) => card.id === cardId);
 
               if (index !== -1) {
                   state.cards[index] = {
@@ -232,11 +219,10 @@ const cardsSlice = createSlice({
       .addCase(
         setCardPinThunk.rejected,
         (state, action) => {
-          state.error =
-            action.error.message ||
-            "Failed to set PIN";
+          state.error = action.error.message || "Failed to set PIN";
         }
       )
+
   },
 });
 

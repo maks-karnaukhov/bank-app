@@ -3,6 +3,7 @@ import express from "express";
 import {
     getCards,
     createVirtualCard,
+    createCreditCard,
     getCardById,
     revealCardDetails,
     getCardRevealStatus,
@@ -30,6 +31,12 @@ router.post(
     "/virtual",
     authMiddleware,
     createVirtualCard
+);
+
+router.post(
+    "/credit",
+    authMiddleware,
+    createCreditCard
 );
 
 router.post(

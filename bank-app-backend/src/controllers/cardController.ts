@@ -6,15 +6,12 @@ import User from "../models/User";
 import CardRevealAttempt from "../models/CardRevealAttempt";
 
 import {
-encrypt,
-decrypt,
+    encrypt,
+    decrypt,
 } from "../utils/crypto";
 
-import {
-generateCardNumber,
-generateExpiryDate,
-generateCvv,
-} from "../utils/cardGenerator";
+import { generateCardNumber, generateExpiryDate, generateCvv } from "../utils/cardGenerator";
+import { isValidHexColor } from "../utils/validation";
 
 import { AuthRequest } from "../middleware/authMiddleware";
 import CardOrder from "../models/CardOrder";
@@ -48,6 +45,12 @@ export const getCards = async (
                 last4: card.last4,
                 balance: card.balance,
                 creditLimit: card.creditLimit,
+                usedCredit: card.usedCredit,
+                availableCredit:
+                    card.type === "CREDIT"
+                        ? (card.creditLimit ?? 0) -
+                        card.usedCredit
+                        : null,
                 color: card.color,
                 isActive: card.isActive,
                 isFrozen: card.isFrozen,
@@ -242,6 +245,119 @@ export const createVirtualCard = async (
         });
     }
 
+};
+
+export const createCreditCard = async (
+    req: AuthRequest,
+    res: Response
+) => {
+    try {
+        const userId = req.userId;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        const {
+            city,
+            street,
+            house,
+            apartment,
+            cardColor,
+        } = req.body;
+
+        if (
+            !city?.trim() ||
+            !street?.trim() ||
+            !house?.trim() ||
+            !apartment?.trim()
+        ) {
+            return res.status(400).json({
+                message: "Delivery address is required",
+            });
+        }
+
+        if (!cardColor) {
+            return res.status(400).json({
+                message: "Card color is required",
+            });
+        }
+
+        if (!isValidHexColor(cardColor)) {
+            return res.status(400).json({
+                message: "Invalid card color",
+            });
+        }
+
+        const existingCreditCard =
+            await Card.findOne({
+                userId,
+                type: "CREDIT",
+                isClosed: false,
+            });
+
+        if (existingCreditCard) {
+            return res.status(400).json({
+                code: "CREDIT_CARD_ALREADY_EXISTS",
+                message: "Active credit card already exists",
+            });
+        }
+
+        const existingCreditOrder =
+            await CardOrder.findOne({
+                userId,
+                type: "CREDIT",
+                status: {
+                    $in: [
+                        "ORDERED",
+                        "PROCESSING",
+                        "DELIVERY_SCHEDULED",
+                        "DELIVERED",
+                    ],
+                },
+            });
+
+        if (existingCreditOrder) {
+            return res.status(400).json({
+                code: "CREDIT_CARD_ALREADY_EXISTS",
+                message: "Credit card order already exists",
+            });
+        }
+
+        const order = await CardOrder.create({
+            userId,
+            type: "CREDIT",
+            status: "ORDERED",
+            cardColor,
+            deliveryAddress: {
+                city: city.trim(),
+                street: street.trim(),
+                house: house.trim(),
+                apartment: apartment.trim(),
+            },
+        });
+
+        return res.status(201).json({
+            id: order._id,
+            type: order.type,
+            status: order.status,
+            deliveryAddress: order.deliveryAddress,
+            cardColor: order.cardColor,
+            specialistName: order.specialistName,
+            scheduledAt: order.scheduledAt,
+        });
+    } catch (error) {
+        console.error(
+            "Create credit card error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
 };
 
 export const createInitialCard = async (

@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import styles from "./CardItem.module.css";
 
 import type {
@@ -13,13 +14,11 @@ export default function CardItem({
     card,
     onClick,
 }: IProps) {
-    const statusClass = card.isFrozen
-        ? styles.frozen
-        : "";
+    const statusClass = card.isFrozen ? styles.frozen : "";
 
     return (
         <div
-            className={`${styles.card} ${statusClass}`}
+            className={clsx(styles.card, statusClass)}
             style={{
                 backgroundColor: card.color,
             }}
@@ -27,14 +26,9 @@ export default function CardItem({
         >
             <div className={styles.top}>
                 <span className={styles.type}>
-                    {card.network === "VISA"
-                        ? "Visa"
-                        : card.network
-                    }{" "}
-                    {card.type === "DEBIT"
-                        ? "Debit"
-                        : "Credit"
-                    }
+                    {card.network === "VISA" ? "Visa" : card.network}
+                    {" "}
+                    {card.type === "DEBIT" ? "Debit" : "Credit"}
                 </span>
 
                 <span className={styles.currency}>

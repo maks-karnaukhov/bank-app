@@ -68,13 +68,18 @@ const CardSchema = new mongoose.Schema(
     },
 
     balance:{
-        type:Number,
+        type: Number,
         default:0,
     },
 
     creditLimit:{
-        type:Number,
+        type: Number,
         default:null,
+    },
+
+    usedCredit: {
+        type: Number,
+        default: 0,
     },
 
     createdAt:{
@@ -110,9 +115,19 @@ const CardSchema = new mongoose.Schema(
 
 });
 
-CardSchema.index({
-    userId: 1
-});
+CardSchema.index(
+    {
+        userId: 1,
+        type: 1,
+    },
+    {
+        unique: true,
+        partialFilterExpression: {
+            type: "CREDIT",
+            isClosed: false,
+        },
+    }
+);
 
 export default mongoose.model(
     "Card",

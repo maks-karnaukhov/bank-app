@@ -17,7 +17,7 @@ const CardOrderSchema = new mongoose.Schema(
 
         type: {
             type: String,
-            enum: ["PHYSICAL"],
+            enum: ["PHYSICAL", "CREDIT"],
             default: "PHYSICAL",
         },
 
