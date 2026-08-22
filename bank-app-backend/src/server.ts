@@ -8,6 +8,7 @@ import transactionsRoutes from './routers/transactions';
 import transferRoutes from './routers/transfer';
 import cardsRouter from "./routers/cards";
 import cardOrdersRouter from "./routers/CardOrders";
+import savingsAccountsRouter from "./routers/savingsAccounts";
 
 dotenv.config();
 connectDB();
@@ -22,6 +23,7 @@ app.use('/transactions', transactionsRoutes);
 app.use('/transfer', transferRoutes);
 app.use('/cards', cardsRouter);
 app.use("/api/card-orders", cardOrdersRouter);
+app.use("/api/savings-accounts", savingsAccountsRouter);
 
 app.get('/', (req, res) => {
   res.send('API is running');

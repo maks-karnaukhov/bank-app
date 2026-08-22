@@ -55,14 +55,6 @@
     flex-direction: column;
     justify-content: space-between;
     gap: 24px;
-    cursor: pointer;
-        transition:
-        transform .25s,
-        box-shadow .25s;
-}
-.creditCard:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 24px 45px rgba(0,0,0,.25);
 }
 
 .cardHeader {
