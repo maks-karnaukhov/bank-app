@@ -53,3 +53,25 @@ export const resetPassword = (
         email,
         password,
     });
+
+export const fetchSavingsAccounts = () =>
+    api.get("/api/savings-accounts");
+
+export const createSavingsAccount = (
+    data: {
+        name: string;
+        purpose: string;
+        goalAmount: number;
+    }
+) =>
+    api.post(
+        "/api/savings-accounts",
+        data
+    );
+
+export const closeSavingsAccount = (
+    accountId: string
+) =>
+    api.delete(
+        `/api/savings-accounts/${accountId}`
+    );

@@ -1,0 +1,102 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.modal {
+    width: 100%;
+    max-width: 440px;
+    padding: 28px;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.modal h2 {
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.modal p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.modal strong {
+    color: #111827;
+}
+
+.warning {
+    margin-top: 16px !important;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #fef3c7;
+    color: #92400e !important;
+}
+
+.error {
+    padding: 14px;
+    border-radius: 10px;
+    background: #fee2e2;
+    color: #b91c1c !important;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.primaryButton,
+.secondaryButton,
+.dangerButton {
+    border: none;
+    border-radius: 10px;
+    padding: 11px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        transform 0.2s,
+        opacity 0.2s;
+}
+
+.primaryButton {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.secondaryButton {
+    background: #f1f5f9;
+    color: #111827;
+}
+
+.dangerButton {
+    background: #dc2626;
+    color: #ffffff;
+}
+
+.primaryButton:hover,
+.secondaryButton:hover,
+.dangerButton:hover {
+    transform: translateY(-1px);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.dangerButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}

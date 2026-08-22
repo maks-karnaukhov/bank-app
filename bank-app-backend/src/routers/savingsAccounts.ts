@@ -3,6 +3,7 @@ import express from "express";
 import {
     createSavingsAccount,
     getSavingsAccounts,
+    closeSavingsAccount,
 } from "../controllers/savingsAccountController";
 
 import {
@@ -21,6 +22,12 @@ router.post(
     "/",
     authMiddleware,
     createSavingsAccount
+);
+
+router.delete(
+    "/:id",
+    authMiddleware,
+    closeSavingsAccount
 );
 
 export default router;

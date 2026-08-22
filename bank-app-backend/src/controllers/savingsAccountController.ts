@@ -136,3 +136,66 @@ export const getSavingsAccounts = async (
         });
     }
 };
+
+export const closeSavingsAccount = async (
+    req: AuthRequest,
+    res: Response
+) => {
+    try {
+        const userId = req.userId;
+        const { id } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        const account = await SavingsAccount.findOne({
+            _id: id,
+            userId,
+        });
+
+        if (!account) {
+            return res.status(404).json({
+                code: "SAVINGS_ACCOUNT_NOT_FOUND",
+                message: "Savings account not found",
+            });
+        }
+
+        if (account.isClosed) {
+            return res.status(400).json({
+                code: "SAVINGS_ACCOUNT_ALREADY_CLOSED",
+                message: "Savings account is already closed",
+            });
+        }
+
+        if (account.balance !== 0) {
+            return res.status(400).json({
+                code: "SAVINGS_ACCOUNT_HAS_BALANCE",
+                message: "Savings account cannot be closed while it has a balance",
+            });
+        }
+
+        account.isClosed = true;
+
+        await account.save();
+
+        return res.status(200).json({
+            message: "Savings account closed successfully",
+            account: {
+                id: account._id,
+                isClosed: account.isClosed,
+            },
+        });
+    } catch (error) {
+        console.error(
+            "Close savings account error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};
