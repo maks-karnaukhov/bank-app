@@ -5,13 +5,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 16px;
     background: rgba(0, 0, 0, 0.45);
+    overflow-y: auto;
 }
 
 .modal {
     width: 100%;
     max-width: 500px;
+    max-height: calc(100vh - 32px);
     border-radius: 20px;
     background: white;
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
@@ -22,7 +24,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 22px 24px;
+    padding: 20px 22px;
     border-bottom: 1px solid #e5e7eb;
 }
 
@@ -48,11 +50,14 @@
 }
 
 .content {
-    padding: 24px;
+    padding: 22px;
+    max-height: calc(100vh - 110px);
+    overflow-y: auto;
+    box-sizing: border-box;
 }
 
 .description {
-    margin: 0 0 22px;
+    margin: 0 0 20px;
     color: #666;
     font-size: 14px;
     line-height: 1.5;
@@ -61,7 +66,7 @@
 .form {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
 }
 
 .form label {
@@ -98,14 +103,15 @@
 }
 
 .error {
-    margin: 16px 0 0;
+    margin: 14px 0 0;
     color: #dc2626;
     font-size: 13px;
+    line-height: 1.4;
 }
 
 .primaryButton {
     width: 100%;
-    margin-top: 22px;
+    margin-top: 18px;
     padding: 13px 16px;
     border: none;
     border-radius: 11px;
@@ -127,10 +133,11 @@
     opacity: 0.6;
     cursor: not-allowed;
 }
+
 .colorSection {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .colorLabel {
@@ -173,7 +180,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 .preview > span {
@@ -182,8 +189,8 @@
 }
 
 .previewCard {
-    min-height: 105px;
-    padding: 18px;
+    min-height: 100px;
+    padding: 16px;
     box-sizing: border-box;
     border-radius: 14px;
     color: white;
@@ -193,4 +200,88 @@
     font-size: 12px;
     font-weight: 600;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 600px) {
+    .overlay {
+        align-items: flex-start;
+        padding: 10px;
+    }
+
+    .modal {
+        max-height: calc(100vh - 20px);
+        border-radius: 16px;
+    }
+
+    .content {
+        padding: 18px;
+        max-height: calc(100vh - 90px);
+    }
+
+    .header {
+        padding: 16px 18px;
+    }
+
+    .header h2 {
+        font-size: 18px;
+    }
+
+    .description {
+        margin-bottom: 18px;
+        font-size: 13px;
+    }
+
+    .form {
+        gap: 12px;
+    }
+
+    .row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .primaryButton {
+        margin-top: 16px;
+    }
+
+    .colorOption {
+        width: 34px;
+        height: 34px;
+    }
+
+    .previewCard {
+        min-height: 90px;
+        padding: 15px;
+    }
+}
+
+@media (max-height: 700px) and (min-width: 601px) {
+    .modal {
+        max-height: calc(100vh - 24px);
+    }
+
+    .header {
+        padding: 16px 20px;
+    }
+
+    .content {
+        padding: 18px 20px;
+    }
+
+    .description {
+        margin-bottom: 16px;
+    }
+
+    .form {
+        gap: 12px;
+    }
+
+    .primaryButton {
+        margin-top: 16px;
+    }
+
+    .previewCard {
+        min-height: 85px;
+        padding: 14px;
+    }
 }
