@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Footer from "@/components/Footer/Footer";
 
 export default function ProtectedLayout({
   children,
@@ -46,6 +47,7 @@ export default function ProtectedLayout({
     <>
       <Navbar />
       {children}
+      <Footer />
     </>
   );
 }
