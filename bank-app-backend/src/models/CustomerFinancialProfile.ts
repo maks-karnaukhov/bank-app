@@ -21,7 +21,7 @@ const CustomerFinancialProfileSchema =
                 min: 0,
             },
 
-            monthlyDebtPayments: {
+            monthlyExternalDebtPayments: {
                 type: Number,
                 required: true,
                 min: 0,

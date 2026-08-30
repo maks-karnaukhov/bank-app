@@ -15,7 +15,7 @@ type BaseCreditScoringInput = {
 
 type CreditScoringInput =
     BaseCreditScoringInput & {
-        monthlyDebtPayments: number;
+        monthlyExistingDebtPayments: number;
         monthlyPayment: number;
     };
 
@@ -35,9 +35,16 @@ const calculateAge = (
     const today = new Date();
 
     let age = today.getFullYear() - dateOfBirth.getFullYear();
+
     const monthDifference = today.getMonth() - dateOfBirth.getMonth();
 
-    if ( monthDifference < 0 || (monthDifference === 0 && today.getDate() < dateOfBirth.getDate())) {
+    if (
+        monthDifference < 0 ||
+        (
+            monthDifference === 0 &&
+            today.getDate() < dateOfBirth.getDate()
+        )
+    ) {
         age -= 1;
     }
 
@@ -172,15 +179,11 @@ const calculateAmountScore = (
     amount: number,
     monthlyIncome: number
 ): number => {
-    if (
-        amount <= 0 ||
-        monthlyIncome <= 0
-    ) {
+    if (amount <= 0 || monthlyIncome <= 0) {
         return 0;
     }
 
-    const incomeRatio =
-        amount / monthlyIncome;
+    const incomeRatio = amount / monthlyIncome;
 
     if (incomeRatio <= 3) {
         return 15;
@@ -256,14 +259,14 @@ const calculatePurposeScore = (
 
 const calculateDti = (
     monthlyIncome: number,
-    monthlyDebtPayments: number,
+    monthlyExistingDebtPayments: number,
     monthlyPayment: number
 ): number => {
     if (monthlyIncome <= 0) {
         return 100;
     }
 
-    const totalMonthlyDebt = monthlyDebtPayments + monthlyPayment;
+    const totalMonthlyDebt = monthlyExistingDebtPayments + monthlyPayment;
 
     return (totalMonthlyDebt / monthlyIncome) * 100;
 };
@@ -319,11 +322,12 @@ export const calculateCreditScore = (
 ): CreditScoringResult => {
     const baseScore = calculateBaseCreditScore(input);
 
-    const dti = calculateDti(
-        input.monthlyIncome,
-        input.monthlyDebtPayments,
-        input.monthlyPayment
-    );
+    const dti =
+        calculateDti(
+            input.monthlyIncome,
+            input.monthlyExistingDebtPayments,
+            input.monthlyPayment
+        );
 
     if (input.monthlyPayment > input.monthlyIncome) {
         return {
@@ -345,13 +349,7 @@ export const calculateCreditScore = (
 
     const dtiScoreAdjustment = calculateDtiScoreAdjustment(dti);
 
-    const score = Math.max(
-        0,
-        Math.min(
-            100,
-            baseScore + dtiScoreAdjustment
-        )
-    );
+    const score = Math.max(0, Math.min(100, baseScore + dtiScoreAdjustment));
 
     if (score >= 80) {
         return {

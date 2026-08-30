@@ -70,10 +70,7 @@ export const createLoanApplication = async (
             });
         }
 
-        const financialProfile =
-            await CustomerFinancialProfile.findOne({
-                userId,
-            });
+        const financialProfile = await CustomerFinancialProfile.findOne({userId});
 
         if (!financialProfile) {
             return res.status(400).json({
@@ -81,6 +78,20 @@ export const createLoanApplication = async (
                 message: "Customer financial profile is required",
             });
         }
+
+        const activeLoans =
+            await Loan.find({
+                userId,
+                status: "ACTIVE",
+            });
+
+        const monthlyInternalDebtPayments =
+            activeLoans.reduce(
+                (total, loan) =>
+                    total + loan.monthlyPayment, 0
+            );
+
+        const monthlyExistingDebtPayments = monthlyInternalDebtPayments + financialProfile.monthlyExternalDebtPayments;
 
         const baseScore =
             calculateBaseCreditScore({
@@ -93,7 +104,10 @@ export const createLoanApplication = async (
                 purpose,
             });
 
-        const interestRate = calculateCreditInterestRate({creditScore: baseScore});
+        const interestRate =
+            calculateCreditInterestRate({
+                creditScore: baseScore,
+            });
 
         const calculation =
             calculateCreditPayments({
@@ -106,7 +120,7 @@ export const createLoanApplication = async (
             calculateCreditScore({
                 dateOfBirth: financialProfile.dateOfBirth,
                 monthlyIncome: financialProfile.monthlyIncome,
-                monthlyDebtPayments: financialProfile.monthlyDebtPayments,
+                monthlyExistingDebtPayments,
                 employmentType: financialProfile.employmentType,
                 employmentStartDate: financialProfile.employmentStartDate,
                 amount,
@@ -115,7 +129,7 @@ export const createLoanApplication = async (
                 monthlyPayment: calculation.monthlyPayment,
             });
 
-        const status = 
+        const status =
             scoringResult.decision === "AUTO_APPROVED" ? "APPROVED" : 
             scoringResult.decision === "AUTO_REJECTED" ? "REJECTED" : "PENDING";
 

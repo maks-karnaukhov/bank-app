@@ -19,7 +19,7 @@ export const createCustomerFinancialProfile = async (
         const {
             dateOfBirth,
             monthlyIncome,
-            monthlyDebtPayments,
+            monthlyExternalDebtPayments,
             employmentType,
             employmentStartDate,
         } = req.body;
@@ -40,8 +40,7 @@ export const createCustomerFinancialProfile = async (
             });
         }
 
-        if (
-            typeof monthlyIncome !== "number" ||
+        if (typeof monthlyIncome !== "number" ||
             !Number.isFinite(monthlyIncome) ||
             monthlyIncome <= 0
         ) {
@@ -51,14 +50,16 @@ export const createCustomerFinancialProfile = async (
             });
         }
 
-        if (
-            typeof monthlyDebtPayments !== "number" ||
-            !Number.isFinite(monthlyDebtPayments) ||
-            monthlyDebtPayments < 0
+        if (monthlyExternalDebtPayments !== undefined &&
+            (
+                typeof monthlyExternalDebtPayments !== "number" ||
+                !Number.isFinite(monthlyExternalDebtPayments) ||
+                monthlyExternalDebtPayments < 0
+            )
         ) {
             return res.status(400).json({
-                code: "INVALID_MONTHLY_DEBT_PAYMENTS",
-                message: "Monthly debt payments cannot be negative",
+                code: "INVALID_EXTERNAL_DEBT_PAYMENTS",
+                message: "Monthly external debt payments cannot be negative",
             });
         }
 
@@ -93,10 +94,7 @@ export const createCustomerFinancialProfile = async (
             });
         }
 
-        if (
-            parsedEmploymentStartDate >
-            new Date()
-        ) {
+        if (parsedEmploymentStartDate > new Date()) {
             return res.status(400).json({
                 code: "INVALID_EMPLOYMENT_START_DATE",
                 message: "Employment start date cannot be in the future",
@@ -117,7 +115,7 @@ export const createCustomerFinancialProfile = async (
                 userId,
                 dateOfBirth: parsedDateOfBirth,
                 monthlyIncome,
-                monthlyDebtPayments,
+                monthlyExternalDebtPayments: monthlyExternalDebtPayments ?? 0,
                 employmentType,
                 employmentStartDate: parsedEmploymentStartDate,
             });
@@ -126,7 +124,7 @@ export const createCustomerFinancialProfile = async (
             id: profile._id,
             dateOfBirth: profile.dateOfBirth,
             monthlyIncome: profile.monthlyIncome,
-            monthlyDebtPayments: profile.monthlyDebtPayments,
+            monthlyExternalDebtPayments: profile.monthlyExternalDebtPayments,
             employmentType: profile.employmentType,
             employmentStartDate: profile.employmentStartDate,
             createdAt: profile.createdAt,
@@ -159,7 +157,7 @@ export const updateCustomerFinancialProfile = async (
         const {
             dateOfBirth,
             monthlyIncome,
-            monthlyDebtPayments,
+            monthlyExternalDebtPayments,
             employmentType,
             employmentStartDate,
         } = req.body;
@@ -201,15 +199,18 @@ export const updateCustomerFinancialProfile = async (
             profile.monthlyIncome = monthlyIncome;
         }
 
-        if (monthlyDebtPayments !== undefined) {
-            if (typeof monthlyDebtPayments !== "number" || !Number.isFinite(monthlyDebtPayments) || monthlyDebtPayments < 0) {
+        if (monthlyExternalDebtPayments !== undefined) {
+            if (typeof monthlyExternalDebtPayments !== "number" || 
+                !Number.isFinite(monthlyExternalDebtPayments) ||
+                monthlyExternalDebtPayments < 0
+            ) {
                 return res.status(400).json({
-                    code: "INVALID_MONTHLY_DEBT_PAYMENTS",
-                    message: "Monthly debt payments must be zero or greater",
+                    code: "INVALID_EXTERNAL_DEBT_PAYMENTS",
+                    message: "Monthly external debt payments must be zero or greater",
                 });
             }
 
-            profile.monthlyDebtPayments = monthlyDebtPayments;
+            profile.monthlyExternalDebtPayments = monthlyExternalDebtPayments;
         }
 
         if (employmentType !== undefined) {
@@ -231,9 +232,7 @@ export const updateCustomerFinancialProfile = async (
             profile.employmentType = employmentType;
         }
 
-        if (
-            employmentStartDate !== undefined
-        ) {
+        if (employmentStartDate !== undefined) {
             const parsedEmploymentStartDate = new Date(employmentStartDate);
 
             if (Number.isNaN(parsedEmploymentStartDate.getTime())) {
@@ -243,10 +242,7 @@ export const updateCustomerFinancialProfile = async (
                 });
             }
 
-            if (
-                parsedEmploymentStartDate >
-                new Date()
-            ) {
+            if (parsedEmploymentStartDate > new Date()) {
                 return res.status(400).json({
                     code: "INVALID_EMPLOYMENT_START_DATE",
                     message: "Employment start date cannot be in the future",
@@ -262,7 +258,7 @@ export const updateCustomerFinancialProfile = async (
             id: profile._id,
             dateOfBirth: profile.dateOfBirth,
             monthlyIncome: profile.monthlyIncome,
-            monthlyDebtPayments: profile.monthlyDebtPayments,
+            monthlyExternalDebtPayments: profile.monthlyExternalDebtPayments,
             employmentType: profile.employmentType,
             employmentStartDate: profile.employmentStartDate,
             updatedAt: profile.updatedAt,
