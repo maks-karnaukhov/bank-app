@@ -2,11 +2,13 @@ import { Response } from "express";
 
 import Loan from "../models/Loan";
 import LoanPayment from "../models/LoanPayment";
+import LoanPaymentSchedule from "../models/LoanPaymentSchedule";
 
 import { AuthRequest } from "../middleware/authMiddleware";
 
 import { calculateLoanPayment } from "../services/loanPaymentService";
 import { applyCreditRatingEvent } from "../services/creditRatingService";
+import { markOverdueLoanPayments } from "../services/loanPaymentScheduleService";
 
 export const createLoanPayment = async (
     req: AuthRequest,
@@ -42,14 +44,38 @@ export const createLoanPayment = async (
             });
         }
 
-        if (
-            loan.remainingPrincipal <= 0
-        ) {
+        if (loan.remainingPrincipal <= 0) {
             return res.status(400).json({
                 code: "LOAN_ALREADY_PAID",
                 message: "Loan is already paid",
             });
         }
+
+        await markOverdueLoanPayments(userId);
+
+        const scheduleItem =
+            await LoanPaymentSchedule.findOne({
+                loanId: loan._id,
+                userId,
+                status: {
+                    $in: [
+                        "PENDING",
+                        "LATE",
+                    ],
+                },
+            }).sort({
+                installmentNumber: 1,
+            });
+
+        if (!scheduleItem) {
+            return res.status(400).json({
+                code: "PAYMENT_SCHEDULE_NOT_FOUND",
+                message: "No pending payment found in the loan schedule",
+            });
+        }
+
+        const paidAt = new Date();
+        const wasLate = scheduleItem.status === "LATE";
 
         const calculation =
             calculateLoanPayment({
@@ -67,7 +93,7 @@ export const createLoanPayment = async (
                 interestAmount: calculation.interestAmount,
                 remainingAmount: calculation.remainingPrincipal,
                 status: "COMPLETED",
-                paidAt: new Date(),
+                paidAt,
             });
 
         loan.remainingPrincipal = calculation.remainingPrincipal;
@@ -83,11 +109,18 @@ export const createLoanPayment = async (
 
         await loan.save();
 
-        await applyCreditRatingEvent({
-            userId,
-            loanId: loan._id.toString(),
-            type: "PAYMENT_ON_TIME",
-        });
+        scheduleItem.status = "PAID";
+        scheduleItem.paidAt = paidAt;
+
+        await scheduleItem.save();
+
+        if (!wasLate) {
+            await applyCreditRatingEvent({
+                userId,
+                loanId: loan._id.toString(),
+                type: "PAYMENT_ON_TIME",
+            });
+        }
 
         if (loanPaid) {
             await applyCreditRatingEvent({
@@ -106,6 +139,13 @@ export const createLoanPayment = async (
             remainingAmount: payment.remainingAmount,
             status: payment.status,
             paidAt: payment.paidAt,
+            schedule: {
+                id: scheduleItem._id,
+                installmentNumber: scheduleItem.installmentNumber,
+                dueDate: scheduleItem.dueDate,
+                status: scheduleItem.status,
+                paymentStatus: wasLate ? "LATE" : "ON_TIME",
+            },
         });
     } catch (error) {
         console.error(

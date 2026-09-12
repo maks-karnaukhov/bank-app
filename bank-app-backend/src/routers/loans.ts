@@ -3,6 +3,7 @@ import express from "express";
 import {
     getLoans,
     getLoanById,
+    getLoanPaymentSchedule,
 } from "../controllers/loanController";
 
 import {
@@ -20,6 +21,12 @@ router.get(
     "/",
     authMiddleware,
     getLoans
+);
+
+router.get(
+    "/:id/schedule",
+    authMiddleware,
+    getLoanPaymentSchedule
 );
 
 router.get(

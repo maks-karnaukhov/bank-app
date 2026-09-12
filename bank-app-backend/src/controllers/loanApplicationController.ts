@@ -3,19 +3,15 @@ import { Response } from "express";
 import LoanApplication from "../models/LoanApplication";
 import CustomerFinancialProfile from "../models/CustomerFinancialProfile";
 import Loan from "../models/Loan";
+import LoanPaymentSchedule from "../models/LoanPaymentSchedule";
 
 import { AuthRequest } from "../middleware/authMiddleware";
 
-import {
-    getCreditRating,
-} from "../services/creditRatingService";
-
-import {
-    calculateBaseCreditScore,
-    calculateCreditScore,
-} from "../services/creditScoringService";
+import { getCreditRating } from "../services/creditRatingService";
+import { calculateBaseCreditScore, calculateCreditScore } from "../services/creditScoringService";
 import { calculateCreditInterestRate } from "../services/creditInterestRateService";
 import { calculateCreditPayments } from "../services/creditCalculatorService";
+import { generateLoanPaymentSchedule } from "../services/loanPaymentScheduleService";
 
 export const createLoanApplication = async (
     req: AuthRequest,
@@ -159,7 +155,7 @@ export const createLoanApplication = async (
             });
 
         if (scoringResult.decision === "AUTO_APPROVED") {
-            await Loan.create({
+            const loan = await Loan.create({
                 userId,
                 applicationId: loanApplication._id,
                 amount,
@@ -172,6 +168,21 @@ export const createLoanApplication = async (
                 remainingPrincipal: amount,
                 status: "ACTIVE",
             });
+
+            const paymentSchedule =
+                generateLoanPaymentSchedule({
+                    userId,
+                    loanId: loan._id.toString(),
+                    amount,
+                    termMonths,
+                    monthlyPayment: calculation.monthlyPayment,
+                    annualInterestRate: interestRate,
+                    startDate: loan.createdAt,
+                });
+
+            await LoanPaymentSchedule.insertMany(
+                paymentSchedule
+            );
         }
 
         return res.status(201).json({
