@@ -5,9 +5,8 @@ import LoanPayment from "../models/LoanPayment";
 
 import { AuthRequest } from "../middleware/authMiddleware";
 
-import {
-    calculateLoanPayment,
-} from "../services/loanPaymentService";
+import { calculateLoanPayment } from "../services/loanPaymentService";
+import { applyCreditRatingEvent } from "../services/creditRatingService";
 
 export const createLoanPayment = async (
     req: AuthRequest,
@@ -74,13 +73,29 @@ export const createLoanPayment = async (
         loan.remainingPrincipal = calculation.remainingPrincipal;
         loan.remainingAmount = Math.max(0, loan.remainingAmount - calculation.paymentAmount);
 
-        if (loan.remainingPrincipal <= 0) {
+        const loanPaid = loan.remainingPrincipal <= 0;
+
+        if (loanPaid) {
             loan.remainingPrincipal = 0;
             loan.remainingAmount = 0;
             loan.status = "PAID";
         }
 
         await loan.save();
+
+        await applyCreditRatingEvent({
+            userId,
+            loanId: loan._id.toString(),
+            type: "PAYMENT_ON_TIME",
+        });
+
+        if (loanPaid) {
+            await applyCreditRatingEvent({
+                userId,
+                loanId: loan._id.toString(),
+                type: "LOAN_PAID",
+            });
+        }
 
         return res.status(201).json({
             id: payment._id,
@@ -131,12 +146,13 @@ export const getLoanPayments = async (
             });
         }
 
-        const payments = await LoanPayment.find({
-            loanId: loan._id,
-            userId,
-        }).sort({
-            paidAt: -1,
-        });
+        const payments =
+            await LoanPayment.find({
+                loanId: loan._id,
+                userId,
+            }).sort({
+                paidAt: -1,
+            });
 
         return res.status(200).json(
             payments.map((payment) => ({

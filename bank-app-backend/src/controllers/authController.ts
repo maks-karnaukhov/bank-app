@@ -6,6 +6,7 @@ import { Request, Response } from "express";
 import { generateOtp } from "../utils/otp";
 import { MongoServerError } from "mongodb";
 import { createInitialCard } from "./cardController";
+import { createCreditRating } from "../services/creditRatingService";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -178,9 +179,8 @@ export const verifyOtp = async (req: Request, res: Response) => {
 
       await user.save();
 
-      await createInitialCard(
-        user._id.toString()
-      );
+      await createInitialCard(user._id.toString());
+      await createCreditRating(user._id.toString());
     }
 
     if (purpose === "EMAIL_VERIFY") {

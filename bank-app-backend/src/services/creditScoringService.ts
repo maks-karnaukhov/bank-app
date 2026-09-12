@@ -17,6 +17,7 @@ type CreditScoringInput =
     BaseCreditScoringInput & {
         monthlyExistingDebtPayments: number;
         monthlyPayment: number;
+        creditRating: number;
     };
 
 type CreditScoringResult = {
@@ -29,13 +30,15 @@ type CreditScoringResult = {
     dti: number;
 };
 
+const MIN_CREDIT_RATING = 300;
+const MAX_CREDIT_RATING = 850;
+
 const calculateAge = (
     dateOfBirth: Date
 ): number => {
     const today = new Date();
 
     let age = today.getFullYear() - dateOfBirth.getFullYear();
-
     const monthDifference = today.getMonth() - dateOfBirth.getMonth();
 
     if (
@@ -179,11 +182,15 @@ const calculateAmountScore = (
     amount: number,
     monthlyIncome: number
 ): number => {
-    if (amount <= 0 || monthlyIncome <= 0) {
+    if (
+        amount <= 0 ||
+        monthlyIncome <= 0
+    ) {
         return 0;
     }
 
-    const incomeRatio = amount / monthlyIncome;
+    const incomeRatio =
+        amount / monthlyIncome;
 
     if (incomeRatio <= 3) {
         return 15;
@@ -235,14 +242,8 @@ const calculatePurposeScore = (
 ): number => {
     switch (purpose) {
         case "CAR":
-            return 5;
-
         case "EDUCATION":
-            return 5;
-
         case "MEDICAL":
-            return 5;
-
         case "HOME_RENOVATION":
             return 5;
 
@@ -266,9 +267,14 @@ const calculateDti = (
         return 100;
     }
 
-    const totalMonthlyDebt = monthlyExistingDebtPayments + monthlyPayment;
+    const totalMonthlyDebt =
+        monthlyExistingDebtPayments +
+        monthlyPayment;
 
-    return (totalMonthlyDebt / monthlyIncome) * 100;
+    return (
+        totalMonthlyDebt /
+        monthlyIncome
+    ) * 100;
 };
 
 const calculateDtiScoreAdjustment = (
@@ -287,6 +293,30 @@ const calculateDtiScoreAdjustment = (
     }
 
     return -100;
+};
+
+const normalizeCreditRating = (
+    creditRating: number
+): number => {
+    const normalizedRating =
+        Math.max(
+            MIN_CREDIT_RATING,
+            Math.min(
+                MAX_CREDIT_RATING,
+                creditRating
+            )
+        );
+
+    return (
+        (
+            normalizedRating -
+            MIN_CREDIT_RATING
+        ) /
+        (
+            MAX_CREDIT_RATING -
+            MIN_CREDIT_RATING
+        )
+    ) * 100;
 };
 
 export const calculateBaseCreditScore = (
@@ -329,7 +359,10 @@ export const calculateCreditScore = (
             input.monthlyPayment
         );
 
-    if (input.monthlyPayment > input.monthlyIncome) {
+    if (
+        input.monthlyPayment >
+        input.monthlyIncome
+    ) {
         return {
             score: 0,
             decision: "AUTO_REJECTED",
@@ -349,7 +382,25 @@ export const calculateCreditScore = (
 
     const dtiScoreAdjustment = calculateDtiScoreAdjustment(dti);
 
-    const score = Math.max(0, Math.min(100, baseScore + dtiScoreAdjustment));
+    const financialScore =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                baseScore +
+                    dtiScoreAdjustment
+            )
+        );
+
+    const normalizedCreditRating =
+        normalizeCreditRating(
+            input.creditRating
+        );
+
+    const score = Math.round(
+        financialScore * 0.7 +
+        normalizedCreditRating * 0.3
+    );
 
     if (score >= 80) {
         return {

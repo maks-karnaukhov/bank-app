@@ -12,6 +12,7 @@ import savingsAccountsRouter from "./routers/savingsAccounts";
 import loanApplicationsRouter from "./routers/loanApplications";
 import customerFinancialProfileRouter from "./routers/customerFinancialProfile";
 import loansRouter from "./routers/loans";
+import creditRatingRouter from "./routers/creditRating";
 
 dotenv.config();
 connectDB();
@@ -30,6 +31,7 @@ app.use("/api/savings-accounts", savingsAccountsRouter);
 app.use("/api/loan-applications", loanApplicationsRouter);
 app.use("/api/customer-financial-profile", customerFinancialProfileRouter);
 app.use("/api/loans", loansRouter);
+app.use("/api/credit-rating", creditRatingRouter);
 
 app.get('/', (req, res) => {
   res.send('API is running');

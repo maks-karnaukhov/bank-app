@@ -7,6 +7,10 @@ import Loan from "../models/Loan";
 import { AuthRequest } from "../middleware/authMiddleware";
 
 import {
+    getCreditRating,
+} from "../services/creditRatingService";
+
+import {
     calculateBaseCreditScore,
     calculateCreditScore,
 } from "../services/creditScoringService";
@@ -116,6 +120,14 @@ export const createLoanApplication = async (
                 annualInterestRate: interestRate,
             });
 
+        const creditRating = await getCreditRating(userId);
+
+        if (!creditRating) {
+            return res.status(500).json({
+                message: "Credit rating not found",
+            });
+        }
+
         const scoringResult =
             calculateCreditScore({
                 dateOfBirth: financialProfile.dateOfBirth,
@@ -127,6 +139,7 @@ export const createLoanApplication = async (
                 termMonths,
                 purpose,
                 monthlyPayment: calculation.monthlyPayment,
+                creditRating: creditRating.score,
             });
 
         const status =
