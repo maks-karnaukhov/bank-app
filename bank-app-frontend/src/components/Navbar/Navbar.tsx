@@ -21,6 +21,10 @@ const navigation = [
         href: "/transfers",
         label: "Transfers",
     },
+    {
+        href: "/loans/calculator",
+        label: "Get a loan",
+    },
 ];
 
 export default function Navbar() {
