@@ -2,13 +2,11 @@ import { Response } from "express";
 
 import Loan from "../models/Loan";
 import LoanPayment from "../models/LoanPayment";
-import LoanPaymentSchedule from "../models/LoanPaymentSchedule";
 
 import { AuthRequest } from "../middleware/authMiddleware";
-
-import { calculateLoanPayment } from "../services/loanPaymentService";
 import { applyCreditRatingEvent } from "../services/creditRatingService";
 import { markOverdueLoanPayments } from "../services/loanPaymentScheduleService";
+import { processLoanPayment } from "../services/loanPaymentProcessingService";
 
 export const createLoanPayment = async (
     req: AuthRequest,
@@ -25,126 +23,52 @@ export const createLoanPayment = async (
 
         const { id } = req.params;
 
-        const loan = await Loan.findOne({
-            _id: id,
-            userId,
-        });
-
-        if (!loan) {
-            return res.status(404).json({
-                code: "LOAN_NOT_FOUND",
-                message: "Loan not found",
-            });
-        }
-
-        if (loan.status !== "ACTIVE") {
+        if (typeof id !== "string") {
             return res.status(400).json({
-                code: "LOAN_NOT_ACTIVE",
-                message: "Loan is not active",
-            });
-        }
-
-        if (loan.remainingPrincipal <= 0) {
-            return res.status(400).json({
-                code: "LOAN_ALREADY_PAID",
-                message: "Loan is already paid",
+                code: "LOAN_ID_REQUIRED",
+                message: "Loan ID is required",
             });
         }
 
         await markOverdueLoanPayments(userId);
 
-        const scheduleItem =
-            await LoanPaymentSchedule.findOne({
-                loanId: loan._id,
-                userId,
-                status: {
-                    $in: [
-                        "PENDING",
-                        "LATE",
-                    ],
-                },
-            }).sort({
-                installmentNumber: 1,
-            });
+        const result = await processLoanPayment({
+            userId,
+            loanId: id,
+        });
 
-        if (!scheduleItem) {
-            return res.status(400).json({
-                code: "PAYMENT_SCHEDULE_NOT_FOUND",
-                message: "No pending payment found in the loan schedule",
-            });
-        }
-
-        const paidAt = new Date();
-        const wasLate = scheduleItem.status === "LATE";
-
-        const calculation =
-            calculateLoanPayment({
-                remainingPrincipal: loan.remainingPrincipal,
-                monthlyPayment: loan.monthlyPayment,
-                annualInterestRate: loan.interestRate,
-            });
-
-        const payment =
-            await LoanPayment.create({
-                userId,
-                loanId: loan._id,
-                amount: calculation.paymentAmount,
-                principalAmount: calculation.principalAmount,
-                interestAmount: calculation.interestAmount,
-                remainingAmount: calculation.remainingPrincipal,
-                status: "COMPLETED",
-                paidAt,
-            });
-
-        loan.remainingPrincipal = calculation.remainingPrincipal;
-        loan.remainingAmount = Math.max(0, loan.remainingAmount - calculation.paymentAmount);
-
-        const loanPaid = loan.remainingPrincipal <= 0;
-
-        if (loanPaid) {
-            loan.remainingPrincipal = 0;
-            loan.remainingAmount = 0;
-            loan.status = "PAID";
-        }
-
-        await loan.save();
-
-        scheduleItem.status = "PAID";
-        scheduleItem.paidAt = paidAt;
-
-        await scheduleItem.save();
-
-        if (!wasLate) {
+        if (!result.wasLate) {
             await applyCreditRatingEvent({
                 userId,
-                loanId: loan._id.toString(),
+                loanId: id,
                 type: "PAYMENT_ON_TIME",
             });
         }
 
-        if (loanPaid) {
+        if (result.loanPaid) {
             await applyCreditRatingEvent({
                 userId,
-                loanId: loan._id.toString(),
+                loanId: id,
                 type: "LOAN_PAID",
             });
         }
 
         return res.status(201).json({
-            id: payment._id,
-            loanId: payment.loanId,
-            amount: payment.amount,
-            principalAmount: payment.principalAmount,
-            interestAmount: payment.interestAmount,
-            remainingAmount: payment.remainingAmount,
-            status: payment.status,
-            paidAt: payment.paidAt,
+            id: result.payment._id,
+            loanId: result.payment.loanId,
+            amount: result.payment.amount,
+            principalAmount: result.payment.principalAmount,
+            interestAmount: result.payment.interestAmount,
+            remainingAmount: result.payment.remainingAmount,
+            status: result.payment.status,
+            paidAt: result.payment.paidAt,
+
             schedule: {
-                id: scheduleItem._id,
-                installmentNumber: scheduleItem.installmentNumber,
-                dueDate: scheduleItem.dueDate,
-                status: scheduleItem.status,
-                paymentStatus: wasLate ? "LATE" : "ON_TIME",
+                id: result.scheduleItem._id,
+                installmentNumber: result.scheduleItem.installmentNumber,
+                dueDate: result.scheduleItem.dueDate,
+                status: result.scheduleItem.status,
+                paymentStatus: result.wasLate ? "LATE" : "ON_TIME",
             },
         });
     } catch (error) {
@@ -152,6 +76,34 @@ export const createLoanPayment = async (
             "Create loan payment error:",
             error
         );
+
+        if (error instanceof Error &&  error.message === "LOAN_NOT_FOUND") {
+            return res.status(404).json({
+                code: "LOAN_NOT_FOUND",
+                message: "Loan not found",
+            });
+        }
+
+        if (error instanceof Error && error.message === "LOAN_NOT_ACTIVE") {
+            return res.status(400).json({
+                code: "LOAN_NOT_ACTIVE",
+                message: "Loan is not active",
+            });
+        }
+
+        if (error instanceof Error && error.message === "LOAN_ALREADY_PAID") {
+            return res.status(400).json({
+                code: "LOAN_ALREADY_PAID",
+                message: "Loan is already paid",
+            });
+        }
+
+        if (error instanceof Error && error.message === "PAYMENT_SCHEDULE_NOT_FOUND") {
+            return res.status(400).json({
+                code: "PAYMENT_SCHEDULE_NOT_FOUND",
+                message: "No pending payment found in the loan schedule",
+            });
+        }
 
         return res.status(500).json({
             message: "Server error",

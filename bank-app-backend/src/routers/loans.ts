@@ -12,6 +12,11 @@ import {
 } from "../controllers/loanPaymentController";
 
 import {
+    enableLoanAutoPaymentController,
+    executeLoanAutoPaymentController,
+} from "../controllers/loanAutoPaymentController";
+
+import {
     authMiddleware,
 } from "../middleware/authMiddleware";
 
@@ -27,6 +32,18 @@ router.get(
     "/:id/schedule",
     authMiddleware,
     getLoanPaymentSchedule
+);
+
+router.post(
+    "/:id/auto-payment",
+    authMiddleware,
+    enableLoanAutoPaymentController
+);
+
+router.post(
+    "/:id/auto-payment/execute",
+    authMiddleware,
+    executeLoanAutoPaymentController
 );
 
 router.get(
