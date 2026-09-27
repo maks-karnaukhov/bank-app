@@ -22,11 +22,10 @@ const LoanApplicationSchema =
             purpose: {
                 type: String,
                 enum: [
-                    "CAR",
+                    "PERSONAL",
+                    "HOME",
                     "EDUCATION",
-                    "MEDICAL",
-                    "HOME_RENOVATION",
-                    "TRAVEL",
+                    "CAR",
                     "OTHER",
                 ],
                 required: true,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import styles from "./LoanCalculator.module.css";
 import clsx from "clsx";
@@ -9,6 +10,8 @@ export default function LoanCalculatorPage() {
     const [amount, setAmount] = useState(5000);
     const [termMonths, setTermMonths] = useState(12);
     const [isTermOpen, setIsTermOpen] = useState(false);
+
+    const router = useRouter();
 
     const interestRate = 9.5;
     const monthlyRate = interestRate / 100 / 12;
@@ -252,6 +255,7 @@ export default function LoanCalculatorPage() {
                         <button
                             type="button"
                             className={styles.primaryButton}
+                            onClick={() => router.push("/loans/application")}
                         >
                             Apply for a loan
                         </button>

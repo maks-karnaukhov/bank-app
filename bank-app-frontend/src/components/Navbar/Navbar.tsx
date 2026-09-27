@@ -24,6 +24,7 @@ const navigation = [
     {
         href: "/loans/calculator",
         label: "Get a loan",
+        activePrefix: "/loans/",
     },
 ];
 
@@ -35,8 +36,10 @@ export default function Navbar() {
             <Logo />
 
             <div className={styles.links}>
-                {navigation.map((item) =>
-                    pathname === item.href ? (
+                {navigation.map((item) => {
+                    const isActive = item.activePrefix ? pathname.startsWith(item.activePrefix) : pathname === item.href;
+
+                    return isActive ? (
                         <span
                             key={item.href}
                             className={styles.active}
@@ -51,8 +54,8 @@ export default function Navbar() {
                         >
                             {item.label}
                         </Link>
-                    )
-                )}
+                    );
+                })}
 
                 <LogoutButton />
             </div>

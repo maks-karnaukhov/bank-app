@@ -1,0 +1,365 @@
+.page {
+    min-height: calc(100vh - 72px);
+    padding: 48px 24px 64px;
+    background: #f5f7fb;
+}
+
+.container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.header {
+    margin-bottom: 32px;
+}
+
+.eyebrow {
+    margin: 0 0 8px;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.title {
+    margin: 0;
+    color: #111827;
+    font-size: 40px;
+    line-height: 1.15;
+    font-weight: 700;
+}
+
+.subtitle {
+    max-width: 650px;
+    margin: 12px 0 0;
+    color: #6b7280;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.content {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+    gap: 24px;
+    align-items: stretch;
+}
+
+.card {
+    padding: 32px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.cardHeader {
+    margin-bottom: 32px;
+}
+
+.cardHeader h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 22px;
+    line-height: 1.3;
+}
+
+.cardHeader p {
+    margin: 8px 0 0;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.field {
+    margin-bottom: 28px;
+}
+
+.field:last-child {
+    margin-bottom: 0;
+}
+
+.label {
+    display: block;
+    margin-bottom: 10px;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.inputWrapper {
+    display: flex;
+    align-items: center;
+    height: 56px;
+    padding: 0 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    background: #ffffff;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.inputWrapper:focus-within {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.currency {
+    margin-right: 8px;
+    color: #6b7280;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #111827;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.input::-webkit-outer-spin-button,
+.input::-webkit-inner-spin-button {
+    margin: 0;
+    appearance: none;
+}
+
+.input[type="number"] {
+    appearance: textfield;
+}
+
+.rangeInfo {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+.range {
+    width: 100%;
+    margin-top: 8px;
+    accent-color: #2563eb;
+    cursor: pointer;
+}
+
+.selectWrapper {
+    position: relative;
+    width: 100%;
+}
+
+.select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 56px;
+    padding: 0 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #111827;
+    font-family: inherit;
+    font-size: 16px;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.select:hover {
+    border-color: #9ca3af;
+}
+
+.selectOpen {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.selectArrow {
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid #6b7280;
+    border-bottom: 2px solid #6b7280;
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+}
+
+.selectOpen .selectArrow {
+    transform: rotate(-135deg);
+}
+
+.options {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #374151;
+    font-family: inherit;
+    font-size: 15px;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.option:hover {
+    background: #f3f4f6;
+}
+
+.optionActive {
+    background: #eff6ff;
+    color: #2563eb;
+    font-weight: 600;
+}
+
+.infoCard {
+    display: flex;
+    flex-direction: column;
+}
+
+.resultLabel {
+    margin: 0 0 10px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.infoTitle {
+    margin: 0;
+    color: #111827;
+    font-size: 28px;
+    line-height: 1.25;
+}
+
+.infoText {
+    max-width: 480px;
+    margin: 12px 0 28px;
+    color: #6b7280;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.summary {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 32px;
+}
+
+.summaryRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.summaryRow strong {
+    color: #111827;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: right;
+}
+
+.primaryButton {
+    width: 100%;
+    height: 54px;
+    margin-top: auto;
+    padding: 0 24px;
+    border: none;
+    border-radius: 12px;
+    background: #2563eb;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        transform 0.1s ease,
+        box-shadow 0.2s ease;
+}
+
+.primaryButton:hover {
+    background: #1d4ed8;
+
+    box-shadow:
+        0 8px 20px
+        rgba(37, 99, 235, 0.2);
+}
+
+.primaryButton:active {
+    transform: translateY(1px);
+}
+
+.disclaimer {
+    margin: 16px 0 0;
+    color: #9ca3af;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+@media (max-width: 800px) {
+    .page {
+        padding: 32px 16px 48px;
+    }
+
+    .title {
+        font-size: 32px;
+    }
+
+    .content {
+        grid-template-columns: 1fr;
+    }
+
+    .card {
+        padding: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .page {
+        padding-top: 24px;
+    }
+
+    .title {
+        font-size: 28px;
+    }
+
+    .infoTitle {
+        font-size: 24px;
+    }
+
+    .summaryRow {
+        align-items: flex-start;
+    }
+}

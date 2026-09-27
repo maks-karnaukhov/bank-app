@@ -55,11 +55,10 @@ export const createLoanApplication = async (
         }
 
         const validPurposes = [
-            "CAR",
+            "PERSONAL",
+            "HOME",
             "EDUCATION",
-            "MEDICAL",
-            "HOME_RENOVATION",
-            "TRAVEL",
+            "CAR",
             "OTHER",
         ];
 
@@ -204,6 +203,64 @@ export const createLoanApplication = async (
     } catch (error) {
         console.error(
             "Create loan application error:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};
+
+export const getLoanApplication = async (
+    req: AuthRequest,
+    res: Response
+): Promise<Response> => {
+    try {
+        const userId = req.userId;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        const { id } = req.params;
+
+        if (typeof id !== "string") {
+            return res.status(400).json({
+                code: "LOAN_APPLICATION_ID_REQUIRED",
+                message: "Loan application ID is required",
+            });
+        }
+
+        const loanApplication =
+            await LoanApplication.findOne({
+                _id: id,
+                userId,
+            });
+
+        if (!loanApplication) {
+            return res.status(404).json({
+                code: "LOAN_APPLICATION_NOT_FOUND",
+                message: "Loan application not found",
+            });
+        }
+
+        return res.status(200).json({
+            id: loanApplication._id,
+            amount: loanApplication.amount,
+            termMonths: loanApplication.termMonths,
+            purpose: loanApplication.purpose,
+            creditScore: loanApplication.creditScore,
+            decision: loanApplication.decision,
+            decisionReason: loanApplication.decisionReason,
+            status: loanApplication.status,
+            createdAt: loanApplication.createdAt,
+        });
+    } catch (error) {
+        console.error(
+            "Get loan application error:",
             error
         );
 

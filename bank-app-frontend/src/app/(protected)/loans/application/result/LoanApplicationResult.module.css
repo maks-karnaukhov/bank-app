@@ -1,0 +1,206 @@
+.page {
+    min-height: calc(100vh - 72px);
+    padding: 64px 24px;
+    background: #f7f8fa;
+}
+
+.container {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.resultCard,
+.loadingCard {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 48px;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+    text-align: center;
+}
+
+.eyebrow {
+    margin: 0 0 10px;
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.title,
+.loadingTitle {
+    margin: 0;
+    color: #111827;
+    font-size: 32px;
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+.description,
+.loadingText {
+    max-width: 520px;
+    margin: 16px auto 0;
+    color: #6b7280;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.summary {
+    margin-top: 32px;
+    padding: 20px 24px;
+    border-radius: 16px;
+    background: #f8fafc;
+    text-align: left;
+}
+
+.summaryRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 14px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.summaryRow:last-child {
+    border-bottom: none;
+}
+
+.summaryRow span {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.summaryRow strong {
+    color: #111827;
+    font-size: 15px;
+    text-align: right;
+}
+
+.reviewNote {
+    margin: 24px 0 0;
+    padding: 16px;
+    border-radius: 12px;
+    background: #fff7ed;
+    color: #9a3412;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.iconApproved,
+.iconRejected,
+.iconPending,
+.iconError {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.iconApproved {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.iconRejected {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.iconPending {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.iconError {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.loadingCard {
+    min-height: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.spinner {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 24px;
+    border: 4px solid #e5e7eb;
+    border-top-color: #111827;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.loadingTitle {
+    font-size: 26px;
+}
+
+.loadingText {
+    max-width: 420px;
+}
+
+.backButton {
+    width: 100%;
+    margin-top: 24px;
+    padding: 14px 20px;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #111827;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.backButton:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 640px) {
+    .page {
+        padding: 32px 16px;
+    }
+
+    .resultCard,
+    .loadingCard {
+        padding: 32px 20px;
+        border-radius: 20px;
+    }
+
+    .title,
+    .loadingTitle {
+        font-size: 26px;
+    }
+
+    .summary {
+        padding: 16px;
+    }
+
+    .summaryRow {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .summaryRow strong {
+        text-align: left;
+    }
+}

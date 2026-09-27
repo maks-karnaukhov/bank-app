@@ -2,6 +2,7 @@ import express from "express";
 
 import {
     createLoanApplication,
+    getLoanApplication,
 } from "../controllers/loanApplicationController";
 
 import {
@@ -14,6 +15,12 @@ router.post(
     "/",
     authMiddleware,
     createLoanApplication
+);
+
+router.get(
+    "/:id",
+    authMiddleware,
+    getLoanApplication
 );
 
 export default router;
