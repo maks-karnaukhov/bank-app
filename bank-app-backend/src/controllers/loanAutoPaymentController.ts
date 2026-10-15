@@ -5,7 +5,8 @@ import { AuthRequest } from "../middleware/authMiddleware";
 import {
     enableLoanAutoPayment,
     executeLoanAutoPayment,
-    disableLoanAutoPayment
+    disableLoanAutoPayment,
+    getLoanAutoPayment,
 } from "../services/loanAutoPaymentService";
 
 import {
@@ -287,6 +288,68 @@ export const disableLoanAutoPaymentController = async (
             return res.status(404).json({
                 code: "AUTO_PAYMENT_NOT_FOUND",
                 message: "Loan auto payment not found",
+            });
+        }
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};
+
+export const getLoanAutoPaymentController = async (
+    req: AuthRequest,
+    res: Response
+): Promise<Response> => {
+    try {
+        const userId = req.userId;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        const { id } = req.params;
+
+        if (typeof id !== "string") {
+            return res.status(400).json({
+                code: "LOAN_ID_REQUIRED",
+                message: "Loan ID is required",
+            });
+        }
+
+        const autoPayment = await getLoanAutoPayment({
+            userId,
+            loanId: id,
+        });
+
+        return res.status(200).json({
+            autoPayment: autoPayment
+                ? {
+                    id: autoPayment._id.toString(),
+                    loanId: autoPayment.loanId.toString(),
+                    cardId: autoPayment.cardId.toString(),
+                    isEnabled: autoPayment.isEnabled,
+                    lastAttemptAt: autoPayment.lastAttemptAt,
+                    lastSuccessfulPaymentAt: autoPayment.lastSuccessfulPaymentAt,
+                    lastError: autoPayment.lastError,
+                }
+                : null,
+        });
+    } catch (error) {
+        console.error(
+            "Get loan auto payment error:",
+            error
+        );
+
+        if (
+            error instanceof Error &&
+            error.message === "LOAN_NOT_FOUND"
+        ) {
+            return res.status(404).json({
+                code: "LOAN_NOT_FOUND",
+                message: "Loan not found",
             });
         }
 

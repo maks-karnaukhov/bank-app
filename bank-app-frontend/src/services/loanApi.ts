@@ -39,6 +39,16 @@ export type LoanPaymentSchedule = {
     paidAt: string | null;
 };
 
+export type LoanAutoPayment = {
+    id: string;
+    loanId: string;
+    cardId: string;
+    isEnabled: boolean;
+    lastAttemptAt: string | null;
+    lastSuccessfulPaymentAt: string | null;
+    lastError: string | null;
+};
+
 export const getLoans = async () => {
     return api.get<Loan[]>("/api/loans");
 };
@@ -80,5 +90,39 @@ export const createEarlyLoanRepayment = async (
         {
             cardId,
         }
+    );
+};
+
+export const enableLoanAutoPayment = async (
+    loanId: string,
+    cardId: string
+) => {
+    return api.post<LoanAutoPayment>(
+        `/api/loans/${loanId}/auto-payment`,
+        { cardId }
+    );
+};
+
+export const disableLoanAutoPayment = async (
+    loanId: string
+) => {
+    return api.delete<LoanAutoPayment>(
+        `/api/loans/${loanId}/auto-payment`
+    );
+};
+
+export const getLoanAutoPayment = async (
+    loanId: string
+) => {
+    return api.get<{
+        autoPayment: LoanAutoPayment | null;
+    }>(`/api/loans/${loanId}/auto-payment`);
+};
+
+export const executeLoanAutoPayment = async (
+    loanId: string
+) => {
+    return api.post(
+        `/api/loans/${loanId}/auto-payment/execute`
     );
 };

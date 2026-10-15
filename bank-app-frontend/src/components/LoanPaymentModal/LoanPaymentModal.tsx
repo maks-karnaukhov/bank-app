@@ -18,8 +18,9 @@ import type {
     LoanPaymentSchedule,
 } from "@/services/loanApi";
 
+import CardSelect from "@/components/CardSelect/CardSelect";
+
 import styles from "./LoanPaymentModal.module.css";
-import clsx from "clsx";
 
 type Props = {
     loanId: string;
@@ -42,7 +43,6 @@ export default function LoanPaymentModal({
     const [cards, setCards] = useState<Card[]>([]);
     const [loan, setLoan] = useState<Loan | null>(null);
     const [schedule, setSchedule] = useState<LoanPaymentSchedule[]>([]);
-    const [isCardSelectOpen, setIsCardSelectOpen] = useState(false);
     const [selectedCardId, setSelectedCardId] = useState("");
     const [paymentMode, setPaymentMode] = useState<PaymentMode>("SCHEDULED");
     const [loading, setLoading] = useState(true);
@@ -253,47 +253,17 @@ export default function LoanPaymentModal({
                                 No active cards are available for payment.
                             </p>
                         ) : (
-                            <div
-                                className={clsx(styles.selectWrapper, 
-                                    isCardSelectOpen ? styles.selectOpen : ""
-                                )}
-                            >
-                                <select
-                                    id="payment-card"
-                                    className={styles.select}
-                                    value={selectedCardId}
-                                    onMouseDown={() => setIsCardSelectOpen((prev) => !prev)}
-                                    onKeyDown={(event) => {
-                                        if (
-                                            event.key === "Enter" ||
-                                            event.key === " " ||
-                                            event.key === "ArrowDown" ||
-                                            event.key === "ArrowUp"
-                                        ) {
-                                            setIsCardSelectOpen(true);
-                                        }
-
-                                        if (event.key === "Escape") {
-                                            setIsCardSelectOpen(false);
-                                        }
-                                    }}
-                                    onBlur={() => setIsCardSelectOpen(false)}
-                                    onChange={(event) => {
-                                        setSelectedCardId(event.target.value);
-                                        setError(null);
-                                        setIsCardSelectOpen(false);
-                                    }}
-                                    disabled={submitting}
-                                >
-                                    {cards.map((card) => (
-                                        <option key={card.id} value={card.id}>
-                                            {card.name} •••• {card.last4}
-                                            {" — "}
-                                            Balance: {formatMoney(card.balance)}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                            <CardSelect
+                                id="payment-card"
+                                cards={cards}
+                                value={selectedCardId}
+                                onChange={(cardId) => {
+                                    setSelectedCardId(cardId);
+                                    setError(null);
+                                }}
+                                disabled={submitting}
+                                placeholder="Select a card"
+                            />
                         )}
 
                         <div className={styles.paymentOptions}>

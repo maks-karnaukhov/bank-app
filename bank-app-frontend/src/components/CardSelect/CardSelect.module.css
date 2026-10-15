@@ -1,0 +1,222 @@
+.root {
+    position: relative;
+    width: 100%;
+}
+
+.trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 18px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #111827;
+    text-align: left;
+    font-size: 14px;
+    cursor: pointer;
+    transition:
+        border-color 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.trigger:hover:not(:disabled) {
+    border-color: #9ca3af;
+}
+
+.trigger:focus-visible {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgb(37 99 235 / 12%);
+}
+
+.triggerOpen {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgb(37 99 235 / 10%);
+}
+
+.trigger:disabled {
+    background: #f9fafb;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.selectedCard {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.selectedInfo,
+.optionInfo {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.cardIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 28px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #f9fafb, #e5e7eb);
+    color: #374151;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.cardName {
+    overflow: hidden;
+    color: #111827;
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cardNumber {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.balance {
+    color: #374151;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.placeholder {
+    color: #9ca3af;
+}
+
+.chevron {
+    flex-shrink: 0;
+    margin-right: 2px;
+    color: #6b7280;
+    transform: rotate(0deg);
+    transition:
+        transform 180ms ease,
+        color 180ms ease;
+}
+
+.chevronOpen {
+    transform: rotate(180deg);
+    color: #2563eb;
+}
+
+.options {
+    position: absolute;
+    z-index: 1100;
+    top: calc(100% + 8px);
+    right: 0;
+    left: 0;
+    max-height: 280px;
+    overflow-y: auto;
+    padding: 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow:
+        0 12px 28px rgb(17 24 39 / 12%),
+        0 2px 6px rgb(17 24 39 / 5%);
+    animation: dropdownEnter 150ms ease-out;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 60px;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #111827;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 120ms ease;
+}
+
+.option:hover,
+.option:focus-visible {
+    outline: none;
+    background: #f3f6fb;
+}
+
+.optionSelected {
+    background: #eff6ff;
+}
+
+.checkIcon {
+    flex-shrink: 0;
+    color: #2563eb;
+}
+
+@keyframes dropdownEnter {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .trigger,
+    .chevron,
+    .option {
+        transition: none;
+    }
+
+    .options {
+        animation: none;
+    }
+}
+
+@media (max-width: 520px) {
+    .trigger {
+        padding: 12px 14px;
+    }
+
+    .selectedCard {
+        gap: 5px 8px;
+    }
+
+    .selectedInfo {
+        flex-basis: calc(100% - 54px);
+    }
+
+    .balance {
+        margin-left: 46px;
+    }
+
+    .option {
+        gap: 8px;
+        padding: 10px 8px;
+    }
+
+    .optionInfo {
+        flex-basis: 40%;
+    }
+
+    .balance {
+        font-size: 12px;
+    }
+}

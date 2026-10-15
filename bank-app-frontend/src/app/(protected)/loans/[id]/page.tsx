@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { isAxiosError } from "axios";
 import { useParams, useRouter } from "next/navigation";
+import clsx from "clsx";
 
 import {
     getLoanById,
@@ -10,9 +11,9 @@ import {
 } from "@/services/loanApi";
 
 import styles from "./LoanDetails.module.css";
-import clsx from "clsx";
 
 import LoanPaymentSchedule from "@/components/LoanPaymentSchedule/LoanPaymentSchedule";
+import LoanAutoPaymentSection from "@/components/LoanAutoPaymentSection/page";
 import LoanPaymentModal from "@/components/LoanPaymentModal/LoanPaymentModal";
 
 export default function LoanDetailsPage() {
@@ -28,6 +29,8 @@ export default function LoanDetailsPage() {
     const [scheduleVersion, setScheduleVersion] = useState(0);
 
     useEffect(() => {
+        let cancelled = false;
+
         const loadLoan = async () => {
             try {
                 setLoading(true);
@@ -35,20 +38,40 @@ export default function LoanDetailsPage() {
 
                 const response = await getLoanById(loanId);
 
-                setLoan(response.data);
+                if (!cancelled) {
+                    setLoan(response.data);
+                }
             } catch (error) {
+                if (cancelled) return;
+
                 if (isAxiosError(error)) {
-                    setError(error.response?.data?.message || "Failed to load loan");
+                    setError(
+                        error.response?.data?.message ||
+                            "Failed to load loan"
+                    );
                 } else {
                     setError("Failed to load loan");
                 }
             } finally {
-                setLoading(false);
+                if (!cancelled) {
+                    setLoading(false);
+                }
             }
         };
 
         loadLoan();
+
+        return () => {
+            cancelled = true;
+        };
     }, [loanId]);
+
+    const handleAutoPaymentSuccess = async () => {
+        const response = await getLoanById(loanId);
+
+        setLoan(response.data);
+        setScheduleVersion((prev) => prev + 1);
+    };
 
     if (loading) {
         return (
@@ -62,9 +85,7 @@ export default function LoanDetailsPage() {
         return (
             <main className={styles.container}>
                 <div className={styles.card}>
-                    <h1>
-                        Loan
-                    </h1>
+                    <h1>Loan</h1>
 
                     <p className={styles.error}>
                         {error || "Loan not found"}
@@ -103,114 +124,86 @@ export default function LoanDetailsPage() {
                         </h1>
                     </div>
 
-                    <span className={clsx(styles.status, styles[`status${loan.status}`])}>
+                    <span
+                        className={clsx(
+                            styles.status,
+                            styles[`status${loan.status}`]
+                        )}
+                    >
                         {loan.status}
                     </span>
                 </div>
 
                 <div className={styles.mainAmount}>
-                    <span>
-                        Loan amount
-                    </span>
+                    <span>Loan amount</span>
 
                     <strong>
                         $
-                        {loan.amount.toLocaleString(
-                            "en-US",
-                            {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            }
-                        )}
+                        {loan.amount.toLocaleString("en-US", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        })}
                     </strong>
                 </div>
 
                 <div className={styles.details}>
                     <div className={styles.detail}>
-                        <span>
-                            Remaining principal
-                        </span>
+                        <span>Remaining principal</span>
 
                         <strong>
                             $
-                            {loan.remainingPrincipal.toLocaleString(
-                                "en-US",
-                                {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                }
-                            )}
+                            {loan.remainingPrincipal.toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            })}
                         </strong>
                     </div>
 
                     <div className={styles.detail}>
-                        <span>
-                            Monthly payment
-                        </span>
+                        <span>Monthly payment</span>
 
                         <strong>
                             $
-                            {loan.monthlyPayment.toLocaleString(
-                                "en-US",
-                                {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                }
-                            )}
+                            {loan.monthlyPayment.toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            })}
                         </strong>
                     </div>
 
                     <div className={styles.detail}>
-                        <span>
-                            Interest rate
-                        </span>
+                        <span>Interest rate</span>
 
-                        <strong>
-                            {loan.interestRate}%
-                        </strong>
+                        <strong>{loan.interestRate}%</strong>
                     </div>
 
                     <div className={styles.detail}>
-                        <span>
-                            Term
-                        </span>
+                        <span>Term</span>
 
-                        <strong>
-                            {loan.termMonths} months
-                        </strong>
+                        <strong>{loan.termMonths} months</strong>
                     </div>
 
                     <div className={styles.detail}>
-                        <span>
-                            Total payment
-                        </span>
+                        <span>Total payment</span>
 
                         <strong>
                             $
-                            {loan.totalPayment.toLocaleString(
-                                "en-US",
-                                {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                }
-                            )}
+                            {loan.totalPayment.toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            })}
                         </strong>
                     </div>
 
                     <div className={styles.detail}>
-                        <span>
-                            Total interest
-                        </span>
+                        <span>Total interest</span>
 
                         <strong>
                             $
-                            {loan.totalInterest.toLocaleString(
-                                "en-US",
-                                {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                }
-                            )}
+                            {loan.totalInterest.toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            })}
                         </strong>
                     </div>
 
@@ -223,15 +216,12 @@ export default function LoanDetailsPage() {
                             <strong className={styles.nextPaymentDate}>
                                 {loan.nextPaymentDate
                                     ? new Date(
-                                        loan.nextPaymentDate
-                                    ).toLocaleDateString(
-                                        "en-US",
-                                        {
-                                            day: "numeric",
-                                            month: "long",
-                                            year: "numeric",
-                                        }
-                                    )
+                                          loan.nextPaymentDate
+                                      ).toLocaleDateString("en-US", {
+                                          day: "numeric",
+                                          month: "long",
+                                          year: "numeric",
+                                      })
                                     : "No upcoming payments"}
                             </strong>
                         </div>
@@ -239,13 +229,10 @@ export default function LoanDetailsPage() {
                         {loan.nextPaymentDate && (
                             <strong className={styles.nextPaymentAmount}>
                                 $
-                                {loan.monthlyPayment.toLocaleString(
-                                    "en-US",
-                                    {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2,
-                                    }
-                                )}
+                                {loan.monthlyPayment.toLocaleString("en-US", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                })}
                             </strong>
                         )}
                     </div>
@@ -261,11 +248,19 @@ export default function LoanDetailsPage() {
                         </button>
                     </div>
                 </div>
+
+                <LoanAutoPaymentSection
+                    loanId={loan.id}
+                    loanStatus={loan.status}
+                    onPaymentSuccess={handleAutoPaymentSuccess}
+                />
+
                 <LoanPaymentSchedule
                     key={scheduleVersion}
                     loanId={loan.id}
                 />
             </div>
+
             {isPaymentModalOpen && (
                 <LoanPaymentModal
                     loanId={loan.id}

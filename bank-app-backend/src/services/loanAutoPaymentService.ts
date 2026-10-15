@@ -175,3 +175,27 @@ export const disableLoanAutoPayment = async ({
 
     return autoPayment;
 };
+
+export const getLoanAutoPayment = async ({
+    userId,
+    loanId,
+}: {
+    userId: string;
+    loanId: string;
+}) => {
+    const loan = await Loan.findOne({
+        _id: loanId,
+        userId,
+    });
+
+    if (!loan) {
+        throw new Error("LOAN_NOT_FOUND");
+    }
+
+    const autoPayment = await LoanAutoPayment.findOne({
+        userId,
+        loanId,
+    });
+
+    return autoPayment;
+};

@@ -8,11 +8,11 @@ export default function TransactionsPage() {
 
     return (
         <div>
-        <h1>Операции</h1>
+        <h1>Transactions</h1>
         <ul>
             {transactions.map(t => (
             <li key={t.id}>
-                {t.date} — {t.title}: {t.amount} ₽
+                {t.date} — Transfer: {t.from} → {t.to}, ${t.amount}
             </li>
             ))}
         </ul>
