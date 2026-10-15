@@ -130,16 +130,17 @@ export const markOverdueLoanPayments = async (
     const processedPayments = [];
 
     for (const payment of overduePayments) {
+        await applyCreditRatingEvent({
+            userId,
+            loanId: payment.loanId.toString(),
+            installmentId: payment._id.toString(),
+            type: "PAYMENT_LATE",
+        });
+
         payment.status = "LATE";
         payment.lateAt = now;
 
         await payment.save();
-
-        await applyCreditRatingEvent({
-            userId,
-            loanId: payment.loanId.toString(),
-            type: "PAYMENT_LATE",
-        });
 
         processedPayments.push(payment);
     }

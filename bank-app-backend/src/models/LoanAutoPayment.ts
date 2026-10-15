@@ -1,45 +1,59 @@
 import mongoose from "mongoose";
 
-const LoanAutoPaymentSchema =
-    new mongoose.Schema(
-        {
-            userId: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "User",
-                required: true,
-            },
-
-            loanId: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Loan",
-                required: true,
-            },
-
-            cardId: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Card",
-                required: true,
-            },
-
-            isEnabled: {
-                type: Boolean,
-                default: true,
-            },
-        },
-        {
-            timestamps: true,
-        }
-    );
-
-LoanAutoPaymentSchema.index(
+const LoanAutoPaymentSchema = new mongoose.Schema(
     {
-        userId: 1,
-        loanId: 1,
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+
+        loanId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Loan",
+            required: true,
+        },
+
+        cardId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Card",
+            required: true,
+        },
+
+        isEnabled: {
+            type: Boolean,
+            default: true,
+        },
+
+        lastAttemptAt: {
+            type: Date,
+            default: null,
+        },
+
+        lastSuccessfulPaymentAt: {
+            type: Date,
+            default: null,
+        },
+
+        lastError: {
+            type: String,
+            default: null,
+        },
     },
     {
-        unique: true,
+        timestamps: true,
     }
 );
+
+LoanAutoPaymentSchema.index(
+    { loanId: 1 },
+    { unique: true }
+);
+
+LoanAutoPaymentSchema.index({
+    userId: 1,
+    isEnabled: 1,
+});
 
 export default mongoose.model(
     "LoanAutoPayment",

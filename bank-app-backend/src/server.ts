@@ -1,21 +1,22 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { connectDB } from "./db";
+import { connectDB } from './db';
 
 import authRoutes from './routers/auth';
 import transactionsRoutes from './routers/transactions';
 import transferRoutes from './routers/transfer';
-import cardsRouter from "./routers/cards";
-import cardOrdersRouter from "./routers/CardOrders";
-import savingsAccountsRouter from "./routers/savingsAccounts";
-import loanApplicationsRouter from "./routers/loanApplications";
-import customerFinancialProfileRouter from "./routers/customerFinancialProfile";
-import loansRouter from "./routers/loans";
-import creditRatingRouter from "./routers/creditRating";
+import cardsRouter from './routers/cards';
+import cardOrdersRouter from './routers/CardOrders';
+import savingsAccountsRouter from './routers/savingsAccounts';
+import loanApplicationsRouter from './routers/loanApplications';
+import customerFinancialProfileRouter from './routers/customerFinancialProfile';
+import loansRouter from './routers/loans';
+import creditRatingRouter from './routers/creditRating';
+
+import { startLoanAutoPaymentScheduler } from './services/loanAutoPaymentScheduler';
 
 dotenv.config();
-connectDB();
 
 const app = express();
 
@@ -26,19 +27,32 @@ app.use('/auth', authRoutes);
 app.use('/transactions', transactionsRoutes);
 app.use('/transfer', transferRoutes);
 app.use('/cards', cardsRouter);
-app.use("/api/card-orders", cardOrdersRouter);
-app.use("/api/savings-accounts", savingsAccountsRouter);
-app.use("/api/loan-applications", loanApplicationsRouter);
-app.use("/api/customer-financial-profile", customerFinancialProfileRouter);
-app.use("/api/loans", loansRouter);
-app.use("/api/credit-rating", creditRatingRouter);
+app.use('/api/card-orders', cardOrdersRouter);
+app.use('/api/savings-accounts', savingsAccountsRouter);
+app.use('/api/loan-applications', loanApplicationsRouter);
+app.use('/api/customer-financial-profile', customerFinancialProfileRouter);
+app.use('/api/loans', loansRouter);
+app.use('/api/credit-rating', creditRatingRouter);
 
 app.get('/', (req, res) => {
-  res.send('API is running');
+    res.send('API is running');
 });
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const startServer = async (): Promise<void> => {
+    try {
+        await connectDB();
+
+        startLoanAutoPaymentScheduler();
+
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+};
+
+void startServer();

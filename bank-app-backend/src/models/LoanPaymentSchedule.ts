@@ -57,6 +57,7 @@ const LoanPaymentScheduleSchema =
                     "PAID",
                     "LATE",
                     "MISSED",
+                    "CANCELLED",
                 ],
                 default: "PENDING",
             },

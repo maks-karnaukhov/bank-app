@@ -4,7 +4,8 @@ import { AuthRequest } from "../middleware/authMiddleware";
 
 import {
     enableLoanAutoPayment,
-    executeLoanAutoPayment
+    executeLoanAutoPayment,
+    disableLoanAutoPayment
 } from "../services/loanAutoPaymentService";
 
 import {
@@ -119,6 +120,7 @@ export const executeLoanAutoPaymentController = async (
             await applyCreditRatingEvent({
                 userId,
                 loanId: id,
+                installmentId: result.schedule._id.toString(),
                 type: "PAYMENT_ON_TIME",
             });
         }
@@ -230,6 +232,61 @@ export const executeLoanAutoPaymentController = async (
             return res.status(400).json({
                 code: "INSUFFICIENT_FUNDS",
                 message: "Insufficient funds on the linked card",
+            });
+        }
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};
+
+export const disableLoanAutoPaymentController = async (
+    req: AuthRequest,
+    res: Response
+): Promise<Response> => {
+    try {
+        const userId = req.userId;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        const { id } = req.params;
+
+        if (typeof id !== "string") {
+            return res.status(400).json({
+                code: "LOAN_ID_REQUIRED",
+                message: "Loan ID is required",
+            });
+        }
+
+        const autoPayment = await disableLoanAutoPayment({
+            userId,
+            loanId: id,
+        });
+
+        return res.status(200).json({
+            id: autoPayment._id,
+            loanId: autoPayment.loanId,
+            cardId: autoPayment.cardId,
+            isEnabled: autoPayment.isEnabled,
+        });
+    } catch (error) {
+        console.error(
+            "Disable loan auto payment error:",
+            error
+        );
+
+        if (
+            error instanceof Error &&
+            error.message === "AUTO_PAYMENT_NOT_FOUND"
+        ) {
+            return res.status(404).json({
+                code: "AUTO_PAYMENT_NOT_FOUND",
+                message: "Loan auto payment not found",
             });
         }
 

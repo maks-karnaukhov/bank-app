@@ -15,6 +15,12 @@ const CreditRatingEventSchema =
                 required: true,
             },
 
+            installmentId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "LoanPaymentSchedule",
+                default: null,
+            },
+
             type: {
                 type: String,
                 enum: [
@@ -49,7 +55,15 @@ const CreditRatingEventSchema =
             timestamps: true,
         }
     );
-
+CreditRatingEventSchema.index(
+    { installmentId: 1, type: 1 },
+    {
+        unique: true,
+        partialFilterExpression: {
+            installmentId: { $type: "objectId" },
+        },
+    }
+);
 export default mongoose.model(
     "CreditRatingEvent",
     CreditRatingEventSchema

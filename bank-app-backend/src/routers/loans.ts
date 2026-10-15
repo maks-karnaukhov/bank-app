@@ -15,6 +15,7 @@ import {
 import {
     enableLoanAutoPaymentController,
     executeLoanAutoPaymentController,
+    disableLoanAutoPaymentController,
 } from "../controllers/loanAutoPaymentController";
 
 import {
@@ -39,6 +40,12 @@ router.post(
     "/:id/auto-payment",
     authMiddleware,
     enableLoanAutoPaymentController
+);
+
+router.delete(
+    "/:id/auto-payment",
+    authMiddleware,
+    disableLoanAutoPaymentController
 );
 
 router.post(

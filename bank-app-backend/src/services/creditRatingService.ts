@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 import CreditRating from "../models/CreditRating";
 import CreditRatingEvent from "../models/CreditRatingEvent";
 
@@ -6,6 +8,13 @@ type CreditRatingEventType =
     | "PAYMENT_LATE"
     | "LOAN_PAID"
     | "LOAN_DEFAULTED";
+
+type ApplyCreditRatingEventInput = {
+    userId: string;
+    loanId: string;
+    type: CreditRatingEventType;
+    installmentId?: string;
+};
 
 const MIN_CREDIT_RATING = 300;
 const MAX_CREDIT_RATING = 850;
@@ -26,9 +35,6 @@ const getEventPoints = (
 
         case "LOAN_DEFAULTED":
             return -100;
-
-        default:
-            return 0;
     }
 };
 
@@ -44,59 +50,199 @@ const clampCreditRating = (
 export const createCreditRating = async (
     userId: string
 ) => {
-    const existingRating = await CreditRating.findOne({userId});
+    const existingRating = await CreditRating.findOne({
+        userId,
+    });
 
     if (existingRating) {
         return existingRating;
     }
 
-    return CreditRating.create({
-        userId,
-        score: DEFAULT_CREDIT_RATING,
-    });
+    try {
+        return await CreditRating.create({
+            userId,
+            score: DEFAULT_CREDIT_RATING,
+        });
+    } catch (error) {
+
+        if (
+            typeof error === "object" &&
+            error !== null &&
+            "code" in error &&
+            error.code === 11000
+        ) {
+            const rating = await CreditRating.findOne({
+                userId,
+            });
+
+            if (rating) {
+                return rating;
+            }
+        }
+
+        throw error;
+    }
 };
 
 export const getCreditRating = async (
     userId: string
 ) => {
-    return CreditRating.findOne({userId});
+    return CreditRating.findOne({ userId });
 };
 
 export const applyCreditRatingEvent = async ({
     userId,
     loanId,
     type,
-}: {
-    userId: string;
-    loanId: string;
-    type: CreditRatingEventType;
-}) => {
-    let rating = await CreditRating.findOne({userId});
+    installmentId,
+}: ApplyCreditRatingEventInput) => {
+    const session = await mongoose.startSession();
 
-    if (!rating) {
-        rating = await createCreditRating(userId);
-    }
+    try {
+        let result:
+            | {
+                  rating: InstanceType<
+                      typeof CreditRating
+                  >;
+                  event: InstanceType<
+                      typeof CreditRatingEvent
+                  >;
+              }
+            | undefined;
 
-    const points = getEventPoints(type);
-    const scoreBefore = rating.score;
-    const scoreAfter = clampCreditRating(scoreBefore + points);
+        await session.withTransaction(async () => {
 
-    rating.score = scoreAfter;
+            if (installmentId) {
+                const existingEvent =
+                    await CreditRatingEvent.findOne({
+                        installmentId,
+                        type,
+                    }).session(session);
 
-    await rating.save();
+                if (existingEvent) {
+                    const existingRating =
+                        await CreditRating.findOne({
+                            userId,
+                        }).session(session);
 
-    const event =
-        await CreditRatingEvent.create({
-            userId,
-            loanId,
-            type,
-            points,
-            scoreBefore,
-            scoreAfter,
+                    if (!existingRating) {
+                        throw new Error(
+                            "CREDIT_RATING_NOT_FOUND"
+                        );
+                    }
+
+                    result = {
+                        rating: existingRating,
+                        event: existingEvent,
+                    };
+
+                    return;
+                }
+            }
+
+            let rating = await CreditRating.findOne({
+                userId,
+            }).session(session);
+
+            if (!rating) {
+                const ratings = await CreditRating.create(
+                    [
+                        {
+                            userId,
+                            score: DEFAULT_CREDIT_RATING,
+                        },
+                    ],
+                    { session }
+                );
+
+            const createdRating = ratings[0];
+
+            if (!createdRating) {
+                throw new Error(
+                    "CREDIT_RATING_CREATION_FAILED"
+                );
+            }
+
+            rating = createdRating;
+            }
+
+            const points = getEventPoints(type);
+            const scoreBefore = rating.score;
+            const scoreAfter = clampCreditRating(
+                scoreBefore + points
+            );
+
+            rating.score = scoreAfter;
+
+            await rating.save({ session });
+
+            const events =
+                await CreditRatingEvent.create(
+                    [
+                        {
+                            userId,
+                            loanId,
+                            installmentId:
+                                installmentId ?? null,
+                            type,
+                            points,
+                            scoreBefore,
+                            scoreAfter,
+                        },
+                    ],
+                    { session }
+                );
+
+            const event = events[0];
+
+            if (!event) {
+                throw new Error(
+                    "CREDIT_RATING_EVENT_CREATION_FAILED"
+                );
+            }
+
+            result = {
+                rating,
+                event,
+            };
         });
 
-    return {
-        rating,
-        event,
-    };
+        if (!result) {
+            throw new Error(
+                "CREDIT_RATING_EVENT_RESULT_NOT_CREATED"
+            );
+        }
+
+        return result;
+    } catch (error) {
+
+        const isDuplicateKey =
+            typeof error === "object" &&
+            error !== null &&
+            "code" in error &&
+            error.code === 11000;
+
+        if (isDuplicateKey && installmentId) {
+            const existingEvent =
+                await CreditRatingEvent.findOne({
+                    installmentId,
+                    type,
+                });
+
+            const rating = await CreditRating.findOne({
+                userId,
+            });
+
+            if (existingEvent && rating) {
+                return {
+                    rating,
+                    event: existingEvent,
+                };
+            }
+        }
+
+        throw error;
+    } finally {
+        await session.endSession();
+    }
 };
