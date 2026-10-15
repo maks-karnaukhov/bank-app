@@ -6,7 +6,10 @@ import LoanPayment from "../models/LoanPayment";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { applyCreditRatingEvent } from "../services/creditRatingService";
 import { markOverdueLoanPayments } from "../services/loanPaymentScheduleService";
-import { processLoanPayment } from "../services/loanPaymentProcessingService";
+import {
+    makeScheduledLoanPayment,
+    makeEarlyLoanRepayment,
+} from "../services/loanPaymentService";
 
 export const createLoanPayment = async (
     req: AuthRequest,
@@ -30,14 +33,43 @@ export const createLoanPayment = async (
             });
         }
 
-        await markOverdueLoanPayments(userId);
+        const { cardId } = req.body;
 
-        const result = await processLoanPayment({
-            userId,
-            loanId: id,
-        });
+        if (
+            typeof cardId !== "string" ||
+            !cardId
+        ) {
+            return res.status(400).json({
+                code: "CARD_ID_REQUIRED",
+                message: "Card ID is required",
+            });
+        }
 
-        if (!result.wasLate) {
+        await markOverdueLoanPayments(
+            userId
+        );
+
+        const result =
+            await makeScheduledLoanPayment({
+                userId,
+                loanId: id,
+                cardId,
+            });
+
+        if (!result) {
+            return res.status(500).json({
+                message:
+                    "Failed to create loan payment",
+            });
+        }
+
+        if (result.loan.status === "PAID") {
+            await applyCreditRatingEvent({
+                userId,
+                loanId: id,
+                type: "LOAN_PAID",
+            });
+        } else {
             await applyCreditRatingEvent({
                 userId,
                 loanId: id,
@@ -45,31 +77,24 @@ export const createLoanPayment = async (
             });
         }
 
-        if (result.loanPaid) {
-            await applyCreditRatingEvent({
-                userId,
-                loanId: id,
-                type: "LOAN_PAID",
-            });
-        }
-
         return res.status(201).json({
-            id: result.payment._id,
-            loanId: result.payment.loanId,
-            amount: result.payment.amount,
-            principalAmount: result.payment.principalAmount,
-            interestAmount: result.payment.interestAmount,
-            remainingAmount: result.payment.remainingAmount,
-            status: result.payment.status,
-            paidAt: result.payment.paidAt,
-
+            id: result.transaction._id,
+            loanId: result.transaction.loanId,
+            amount: result.transaction.amount,
+            principalAmount: result.transaction.principalAmount,
+            interestAmount: result.transaction.interestAmount,
+            remainingAmount: result.transaction.remainingAmount,
+            status: result.transaction.status,
+            paidAt: result.transaction.paidAt,
             schedule: {
-                id: result.scheduleItem._id,
-                installmentNumber: result.scheduleItem.installmentNumber,
-                dueDate: result.scheduleItem.dueDate,
-                status: result.scheduleItem.status,
-                paymentStatus: result.wasLate ? "LATE" : "ON_TIME",
+                id: result.payment._id,
+                installmentNumber: result.payment.installmentNumber,
+                dueDate: result.payment.dueDate,
+                status: result.payment.status,
+                paidAt: result.payment.paidAt,
             },
+
+            loan: result.loan,
         });
     } catch (error) {
         console.error(
@@ -77,31 +102,55 @@ export const createLoanPayment = async (
             error
         );
 
-        if (error instanceof Error &&  error.message === "LOAN_NOT_FOUND") {
+        if (
+            error instanceof Error &&
+            error.message === "LOAN_NOT_FOUND"
+        ) {
             return res.status(404).json({
                 code: "LOAN_NOT_FOUND",
                 message: "Loan not found",
             });
         }
 
-        if (error instanceof Error && error.message === "LOAN_NOT_ACTIVE") {
+        if (
+            error instanceof Error &&
+            error.message === "LOAN_NOT_ACTIVE"
+        ) {
             return res.status(400).json({
                 code: "LOAN_NOT_ACTIVE",
                 message: "Loan is not active",
             });
         }
 
-        if (error instanceof Error && error.message === "LOAN_ALREADY_PAID") {
+        if (
+            error instanceof Error &&
+            error.message === "NO_PENDING_PAYMENT"
+        ) {
             return res.status(400).json({
-                code: "LOAN_ALREADY_PAID",
-                message: "Loan is already paid",
+                code: "NO_PENDING_PAYMENT",
+                message: "No pending payment found in the loan schedule",
             });
         }
 
-        if (error instanceof Error && error.message === "PAYMENT_SCHEDULE_NOT_FOUND") {
+        if (
+            error instanceof Error &&
+            error.message ===
+                "CARD_NOT_FOUND"
+        ) {
+            return res.status(404).json({
+                code: "CARD_NOT_FOUND",
+                message: "Active card not found",
+            });
+        }
+
+        if (
+            error instanceof Error &&
+            error.message ===
+                "INSUFFICIENT_FUNDS"
+        ) {
             return res.status(400).json({
-                code: "PAYMENT_SCHEDULE_NOT_FOUND",
-                message: "No pending payment found in the loan schedule",
+                code: "INSUFFICIENT_FUNDS",
+                message: "Insufficient funds",
             });
         }
 
@@ -150,10 +199,12 @@ export const getLoanPayments = async (
             payments.map((payment) => ({
                 id: payment._id,
                 loanId: payment.loanId,
+                cardId: payment.cardId,
                 amount: payment.amount,
                 principalAmount: payment.principalAmount,
                 interestAmount: payment.interestAmount,
                 remainingAmount: payment.remainingAmount,
+                type: payment.type,
                 status: payment.status,
                 paidAt: payment.paidAt,
             }))
@@ -165,6 +216,116 @@ export const getLoanPayments = async (
         );
 
         return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};
+
+export const createEarlyLoanRepayment = async (
+    req: AuthRequest,
+    res: Response
+): Promise<Response> => {
+    try {
+        const userId = req.userId;
+
+        if (!userId) {
+            return res.status(401).json({
+                code: "UNAUTHORIZED",
+                message: "Unauthorized",
+            });
+        }
+
+        const { cardId } = req.body;
+        const id = req.params.id;
+
+        if (typeof id !== "string" || !id) {
+            return res.status(400).json({
+                code: "LOAN_ID_REQUIRED",
+                message: "Loan ID is required",
+            });
+        }
+
+        if (!id) {
+            return res.status(400).json({
+                code: "LOAN_ID_REQUIRED",
+                message: "Loan ID is required",
+            });
+        }
+
+        if (typeof cardId !== "string" || !cardId) {
+            return res.status(400).json({
+                code: "CARD_ID_REQUIRED",
+                message: "Card ID is required",
+            });
+        }
+
+        const result = await makeEarlyLoanRepayment({
+            userId,
+            loanId: id,
+            cardId,
+        });
+
+        await applyCreditRatingEvent({
+            userId,
+            loanId: id,
+            type: "LOAN_PAID",
+        });
+
+        return res.status(201).json({
+            id: result.transaction._id,
+            loanId: result.transaction.loanId,
+            cardId: result.transaction.cardId,
+            amount: result.transaction.amount,
+            principalAmount: result.transaction.principalAmount,
+            interestAmount: result.transaction.interestAmount,
+            remainingAmount: result.transaction.remainingAmount,
+            type: result.transaction.type,
+            status: result.transaction.status,
+            paidAt: result.transaction.paidAt,
+            loan: result.loan,
+        });
+    } catch (error) {
+        console.error("Early loan repayment error:", error);
+
+        if (error instanceof Error) {
+            const errors: Record<
+                string,
+                { status: number; message: string }
+            > = {
+                LOAN_NOT_FOUND: {
+                    status: 404,
+                    message: "Loan not found",
+                },
+                LOAN_NOT_ACTIVE: {
+                    status: 400,
+                    message: "Loan is not active",
+                },
+                LOAN_ALREADY_PAID: {
+                    status: 400,
+                    message: "Loan has no outstanding principal",
+                },
+                CARD_NOT_FOUND: {
+                    status: 404,
+                    message: "Active card not found",
+                },
+                INSUFFICIENT_FUNDS: {
+                    status: 400,
+                    message: "Insufficient funds",
+                },
+            };
+
+            const knownError = errors[error.message];
+
+            if (knownError) {
+                return res.status(knownError.status).json({
+                    code: error.message,
+                    message: knownError.message,
+                });
+            }
+        }
+
+        return res.status(500).json({
+            code: "SERVER_ERROR",
             message: "Server error",
         });
     }

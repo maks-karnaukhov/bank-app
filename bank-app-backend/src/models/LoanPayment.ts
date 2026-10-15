@@ -15,6 +15,18 @@ const LoanPaymentSchema =
                 required: true,
             },
 
+            cardId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Card",
+                required: true,
+            },
+
+            installmentId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "LoanPaymentSchedule",
+                default: null,
+            },
+
             amount: {
                 type: Number,
                 required: true,
@@ -37,6 +49,15 @@ const LoanPaymentSchema =
                 type: Number,
                 required: true,
                 min: 0,
+            },
+
+            type: {
+                type: String,
+                enum: [
+                    "SCHEDULED",
+                    "EARLY_REPAYMENT",
+                ],
+                required: true,
             },
 
             status: {
@@ -67,6 +88,16 @@ LoanPaymentSchema.index({
     userId: 1,
     paidAt: -1,
 });
+
+LoanPaymentSchema.index(
+    {
+        installmentId: 1,
+    },
+    {
+        unique: true,
+        sparse: true,
+    }
+);
 
 export default mongoose.model(
     "LoanPayment",

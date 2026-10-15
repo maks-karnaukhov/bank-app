@@ -24,21 +24,45 @@ export const getLoans = async (
             createdAt: -1,
         });
 
-        return res.status(200).json(
-            loans.map((loan) => ({
-                id: loan._id,
-                amount: loan.amount,
-                termMonths: loan.termMonths,
-                interestRate: loan.interestRate,
-                monthlyPayment: loan.monthlyPayment,
-                totalPayment: loan.totalPayment,
-                totalInterest: loan.totalInterest,
-                remainingAmount: loan.remainingAmount,
-                remainingPrincipal: loan.remainingPrincipal,
-                status: loan.status,
-                createdAt: loan.createdAt,
-            }))
-        );
+        const loansWithNextPayment =
+            await Promise.all(
+                loans.map(async (loan) => {
+                    const nextPayment =
+                        await LoanPaymentSchedule.findOne({
+                            loanId: loan._id,
+                            userId,
+                            status: {
+                                $in: [
+                                    "PENDING",
+                                    "LATE",
+                                    "MISSED",
+                                ],
+                            },
+                            dueDate: {
+                                $gte: new Date(),
+                            },
+                        }).sort({
+                            dueDate: 1,
+                        });
+
+                    return {
+                        id: loan._id,
+                        amount: loan.amount,
+                        termMonths: loan.termMonths,
+                        interestRate: loan.interestRate,
+                        monthlyPayment: loan.monthlyPayment,
+                        totalPayment: loan.totalPayment,
+                        totalInterest: loan.totalInterest,
+                        remainingAmount: loan.remainingAmount,
+                        remainingPrincipal: loan.remainingPrincipal,
+                        status: loan.status,
+                        createdAt: loan.createdAt,
+                        nextPaymentDate: nextPayment?.dueDate ?? null,
+                    };
+                })
+            );
+
+        return res.status(200).json(loansWithNextPayment);
     } catch (error) {
         console.error(
             "Get loans error:",
@@ -78,6 +102,16 @@ export const getLoanById = async (
             });
         }
 
+        const nextPayment =
+            await LoanPaymentSchedule.findOne({
+                loanId: loan._id,
+                userId,
+                status: "PENDING",
+                dueDate: {$gte: new Date()},
+            }).sort({
+                dueDate: 1,
+            });
+
         return res.status(200).json({
             id: loan._id,
             amount: loan.amount,
@@ -90,6 +124,7 @@ export const getLoanById = async (
             remainingPrincipal: loan.remainingPrincipal,
             status: loan.status,
             createdAt: loan.createdAt,
+            nextPaymentDate: nextPayment?.dueDate ?? null,
         });
     } catch (error) {
         console.error(

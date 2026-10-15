@@ -8,6 +8,7 @@ import {
 
 import {
     createLoanPayment,
+    createEarlyLoanRepayment,
     getLoanPayments,
 } from "../controllers/loanPaymentController";
 
@@ -56,6 +57,12 @@ router.post(
     "/:id/payments",
     authMiddleware,
     createLoanPayment
+);
+
+router.post(
+    "/:id/early-repayment",
+    authMiddleware,
+    createEarlyLoanRepayment
 );
 
 router.get(

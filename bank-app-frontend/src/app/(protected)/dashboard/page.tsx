@@ -8,6 +8,7 @@ import CardsSection from "@/components/CardsSection/CardsSection";
 import PhysicalCardSection from "@/components/PhysicalCardSection/PhysicalCardSection";
 import CreditCardSection from "@/components/CreditCardSection/CreditCardSection";
 import SavingsAccountsSection from "@/components/SavingsAccountsSection/SavingsAccountsSection";
+import LoansSection from "@/components/LoansSection/LoansSection";
 
 export default function DashboardPage() {
 
@@ -19,6 +20,7 @@ export default function DashboardPage() {
       <PhysicalCardSection />
       <CreditCardSection />
       <SavingsAccountsSection />
+      <LoansSection />
     </main>
   );
 }
