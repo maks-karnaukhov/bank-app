@@ -75,3 +75,15 @@ export const closeSavingsAccount = (
     api.delete(
         `/api/savings-accounts/${accountId}`
     );
+
+export const fetchCurrentUser = () =>
+    api.get("/auth/me");
+
+export const fetchCustomerFinancialProfile = () =>
+  api.get("/api/customer-financial-profile");
+
+export const fetchCurrentCreditRating = () =>
+  api.get("/api/credit-rating");
+
+export const fetchCreditRatingEvents = () =>
+  api.get("/api/credit-rating/events");

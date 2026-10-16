@@ -6,8 +6,11 @@ import {
   verifyOtp,
   requestOtp,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  getCurrentUser
 } from "../controllers/authController";
+
+import { authMiddleware } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
@@ -17,5 +20,6 @@ router.post("/request-otp", requestOtp);
 router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+router.get("/me", authMiddleware, getCurrentUser);
 
 export default router;

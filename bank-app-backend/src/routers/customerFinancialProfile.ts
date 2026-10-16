@@ -3,6 +3,7 @@ import express from "express";
 import {
     createCustomerFinancialProfile,
     updateCustomerFinancialProfile,
+    getCustomerFinancialProfile,
 } from "../controllers/customerFinancialProfileController";
 
 import {
@@ -10,6 +11,12 @@ import {
 } from "../middleware/authMiddleware";
 
 const router = express.Router();
+
+router.get(
+    "/",
+    authMiddleware,
+    getCustomerFinancialProfile
+);
 
 router.post(
     "/",

@@ -7,6 +7,7 @@ import { generateOtp } from "../utils/otp";
 import { MongoServerError } from "mongodb";
 import { createInitialCard } from "./cardController";
 import { createCreditRating } from "../services/creditRatingService";
+import { AuthRequest } from "../middleware/authMiddleware";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -325,6 +326,46 @@ export const resetPassword = async (
 
     } catch (error) {
         console.error(error);
+
+        return res.status(500).json({
+            message: "Server error",
+        });
+    }
+};
+
+export const getCurrentUser = async (
+    req: AuthRequest,
+    res: Response
+): Promise<Response> => {
+    try {
+        const userId = req.userId;
+
+        if (!userId) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        const user = await User.findById(userId).select("_id firstName lastName phone email avatarUrl isEmailVerified");
+
+        if (!user) {
+            return res.status(404).json({
+                code: "USER_NOT_FOUND",
+                message: "User not found",
+            });
+        }
+
+        return res.status(200).json({
+            id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phone: user.phone,
+            email: user.email,
+            avatarUrl: user.avatarUrl,
+            isEmailVerified: user.isEmailVerified,
+        });
+    } catch (error) {
+        console.error("Get current user error:", error);
 
         return res.status(500).json({
             message: "Server error",
