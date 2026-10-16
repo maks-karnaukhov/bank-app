@@ -1,0 +1,40 @@
+.pageHeader {
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.pageHeader h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+
+.subtitle {
+  margin: 10px 0 0;
+  color: var(--muted-foreground);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  .pageHeader {
+    margin-bottom: 24px;
+  }
+
+  .pageHeader h1 {
+    font-size: 27px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+}

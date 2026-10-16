@@ -87,3 +87,16 @@ export const fetchCurrentCreditRating = () =>
 
 export const fetchCreditRatingEvents = () =>
   api.get("/api/credit-rating/events");
+
+export const updateCustomerFinancialProfile = (data: {
+  dateOfBirth: string;
+  monthlyIncome: number;
+  monthlyExternalDebtPayments: number;
+  employmentType:
+    | "EMPLOYED"
+    | "SELF_EMPLOYED"
+    | "ENTREPRENEUR"
+    | "UNEMPLOYED"
+    | "OTHER";
+  employmentStartDate: string;
+}) => api.patch("/api/customer-financial-profile", data);
