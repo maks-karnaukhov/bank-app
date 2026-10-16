@@ -1,20 +1,24 @@
 .button {
-  border: none;
-
-  background: #ef4444;
-  color: white;
-
-  padding: 10px 16px;
-
-  border-radius: 10px;
-
-  font-weight: 600;
-
-  cursor: pointer;
-
-  transition: 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 12px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #ef4444;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
 .button:hover {
-  background: #dc2626;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.button:focus-visible {
+    outline: 2px solid #ef4444;
+    outline-offset: 2px;
 }

@@ -48,3 +48,9 @@
   }
 
 }
+
+@media (prefers-reduced-motion: reduce) {
+    .balanceCard {
+        transition: none;
+    }
+}

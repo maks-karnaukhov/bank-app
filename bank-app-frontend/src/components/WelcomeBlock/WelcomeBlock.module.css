@@ -1,24 +1,20 @@
 .top {
-  margin-bottom: 32px;
+    margin-bottom: 32px;
 }
 
 .title {
-  font-size: 36px;
-  font-weight: 700;
-
-  color: #111827;
-
-  margin-bottom: 8px;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--foreground);
+    margin-bottom: 8px;
 }
 
 .subtitle {
-  color: #6b7280;
+    color: var(--muted-foreground);
 }
 
 @media (max-width: 768px) {
-
-  .title {
-    font-size: 28px;
-  }
-
+    .title {
+        font-size: 28px;
+    }
 }

@@ -1,27 +1,40 @@
-'use client';
+"use client";
 
-import { useDispatch } from 'react-redux';
-import { logout } from '@/features/auth/authSlice';
-import { AppDispatch } from '@/store/store';
-import { useRouter } from 'next/navigation';
+import { useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
+
+import { logout } from "@/features/auth/authSlice";
+import type { AppDispatch } from "@/store/store";
+
 import styles from "./LogoutButton.module.css";
 
-export default function LogoutButton() {
-  const dispatch = useDispatch<AppDispatch>();
-  const router = useRouter();
+type LogoutButtonProps = {
+    onLogout?: () => void;
+};
 
-  const handleLogout = () => {
-    dispatch(logout());
-    localStorage.removeItem("token");
-    router.replace("/login");
-  };
+export default function LogoutButton({
+    onLogout,
+}: LogoutButtonProps) {
+    const dispatch = useDispatch<AppDispatch>();
+    const router = useRouter();
 
-  return (
-    <button
-      onClick={handleLogout}
-      className={styles.button}
-    >
-      Logout
-    </button>
+    const handleLogout = () => {
+        dispatch(logout());
+        localStorage.removeItem("token");
+
+        onLogout?.();
+
+        router.replace("/login");
+    };
+
+    return (
+        <button
+            type="button"
+            onClick={handleLogout}
+            className={styles.button}
+        >
+            <span aria-hidden="true">↪</span>
+            <span>Log out</span>
+        </button>
     );
 }

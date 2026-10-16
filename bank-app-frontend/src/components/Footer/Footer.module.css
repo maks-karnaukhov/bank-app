@@ -1,8 +1,13 @@
 .footer {
     width: 100%;
     margin-top: 56px;
-    background: #111827;
-    color: white;
+    background: var(--surface);
+    color: var(--foreground);
+    border-top: 1px solid var(--border);
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
 }
 
 .container {
@@ -35,7 +40,7 @@
 
 .brand p {
     margin: 0;
-    color: #9ca3af;
+    color: var(--muted-foreground);
     font-size: 13px;
     line-height: 1.6;
 }
@@ -49,16 +54,14 @@
 }
 
 .nav a {
-    color: #d1d5db;
+    color: var(--foreground);
     font-size: 13px;
     text-decoration: none;
-    transition:
-        color 0.2s,
-        opacity 0.2s;
+    transition: color 0.2s, opacity 0.2s;
 }
 
 .nav a:hover {
-    color: white;
+    color: var(--primary);
 }
 
 .bottom {
@@ -67,8 +70,8 @@
     justify-content: space-between;
     gap: 20px;
     padding-top: 20px;
-    border-top: 1px solid #374151;
-    color: #6b7280;
+    border-top: 1px solid var(--border);
+    color: var(--muted-foreground);
     font-size: 12px;
 }
 
@@ -107,5 +110,12 @@
 
     .nav {
         gap: 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .footer,
+    .nav a {
+        transition: none;
     }
 }

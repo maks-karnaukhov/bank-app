@@ -16,18 +16,19 @@
     margin: 0;
     font-size: 24px;
     font-weight: 700;
+    color: var(--foreground);
 }
 
 .description {
     margin: 6px 0 0;
-    color: #6b7280;
+    color: var(--muted-foreground);
 }
 
 .accounts {
     display: grid;
     grid-template-columns: repeat(
         auto-fit,
-        minmax(320px, 1fr)
+        minmax(min(100%, 320px), 1fr)
     );
     gap: 20px;
 }
@@ -36,9 +37,10 @@
 .emptyCard,
 .card {
     padding: 24px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border);
     border-radius: 16px;
-    background: #ffffff;
+    background: var(--surface);
+    color: var(--foreground);
 }
 
 .accountCard {
@@ -57,11 +59,12 @@
 .accountHeader h3 {
     margin: 0;
     font-size: 18px;
+    color: var(--foreground);
 }
 
 .accountHeader p {
     margin: 5px 0 0;
-    color: #6b7280;
+    color: var(--muted-foreground);
     font-size: 14px;
 }
 
@@ -83,13 +86,14 @@
 
 .balance span,
 .goalHeader span {
-    color: #6b7280;
+    color: var(--muted-foreground);
     font-size: 12px;
 }
 
 .balance strong {
     font-size: 28px;
-    color: #111827;
+    color: var(--foreground);
+    overflow-wrap: anywhere;
 }
 
 .goal {
@@ -106,7 +110,7 @@
 
 .goalHeader strong {
     font-size: 14px;
-    color: #111827;
+    color: var(--foreground);
 }
 
 .progressTrack {
@@ -114,18 +118,18 @@
     height: 8px;
     overflow: hidden;
     border-radius: 999px;
-    background: #e5e7eb;
+    background: var(--border);
 }
 
 .progressBar {
     height: 100%;
     border-radius: inherit;
-    background: #2563eb;
+    background: var(--primary);
     transition: width 0.3s ease;
 }
 
 .progressText {
-    color: #6b7280;
+    color: var(--muted-foreground);
     font-size: 12px;
 }
 
@@ -146,17 +150,24 @@
     cursor: pointer;
     transition:
         transform 0.2s,
-        opacity 0.2s;
+        opacity 0.2s,
+        background-color 0.2s,
+        color 0.2s;
 }
 
 .primaryButton {
-    background: #2563eb;
+    background: var(--primary);
     color: white;
 }
 
+.primaryButton:hover {
+    background: var(--primary-hover);
+}
+
 .secondaryButton {
-    background: #f1f5f9;
-    color: #111827;
+    background: var(--surface-secondary);
+    color: var(--foreground);
+    border: 1px solid var(--border);
 }
 
 .primaryButton:hover,
@@ -168,6 +179,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 20px;
 }
 
 .emptyCard h3 {
@@ -177,39 +189,17 @@
 
 .emptyCard p {
     margin: 0;
-    color: #6b7280;
+    color: var(--muted-foreground);
 }
 
 .error {
     margin: 0 0 16px;
-    color: #dc2626;
+    color: var(--danger);
 }
 
-@media (max-width: 700px) {
-    .header {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .primaryButton {
-        width: 100%;
-    }
-
-    .accountHeader {
-        flex-direction: column;
-    }
-
-    .actions {
-        flex-direction: column;
-    }
-
-    .secondaryButton {
-        width: 100%;
-    }
-}
 .dangerButton {
     width: fit-content;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 12px;
     padding: 12px 18px;
     font-size: 14px;
@@ -225,4 +215,39 @@
 .dangerButton:hover {
     transform: translateY(-1px);
     opacity: 0.9;
+}
+
+@media (max-width: 700px) {
+    .header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .primaryButton,
+    .secondaryButton,
+    .dangerButton {
+        width: 100%;
+    }
+
+    .accountHeader {
+        flex-direction: column;
+    }
+
+    .actions {
+        flex-direction: column;
+    }
+
+    .emptyCard {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .progressBar,
+    .primaryButton,
+    .secondaryButton,
+    .dangerButton {
+        transition: none;
+    }
 }

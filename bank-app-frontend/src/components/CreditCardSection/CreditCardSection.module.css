@@ -14,13 +14,14 @@
 .eyebrow {
     margin: 0 0 4px;
     font-size: 13px;
-    color: #6b7280;
+    color: var(--muted-foreground);
 }
 
 .header h2 {
     margin: 0;
     font-size: 24px;
     font-weight: 700;
+    color: var(--foreground);
 }
 
 .emptyCard {
@@ -29,9 +30,10 @@
     justify-content: space-between;
     gap: 24px;
     padding: 24px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border);
     border-radius: 16px;
-    background: #ffffff;
+    background: var(--surface);
+    color: var(--foreground);
 }
 
 .emptyCard h3 {
@@ -41,7 +43,7 @@
 
 .emptyCard p {
     margin: 0;
-    color: #6b7280;
+    color: var(--muted-foreground);
 }
 
 .creditCard {
@@ -68,6 +70,7 @@
 .cardNumber {
     font-size: 20px;
     letter-spacing: 0.08em;
+    overflow-wrap: anywhere;
 }
 
 .cardBalance {
@@ -128,17 +131,24 @@
     cursor: pointer;
     transition:
         transform 0.2s,
-        opacity 0.2s;
+        opacity 0.2s,
+        background-color 0.2s,
+        color 0.2s;
 }
 
 .primaryButton {
-    background: #2563eb;
+    background: var(--primary);
     color: white;
 }
 
+.primaryButton:hover {
+    background: var(--primary-hover);
+}
+
 .secondaryButton {
-    background: #f1f5f9;
-    color: #111827;
+    background: var(--surface-secondary);
+    color: var(--foreground);
+    border: 1px solid var(--border);
 }
 
 .primaryButton:hover,
@@ -163,18 +173,19 @@
 .orderStatus span,
 .orderInfoItem span {
     font-size: 12px;
-    color: #6b7280;
+    color: var(--muted-foreground);
 }
 
 .orderStatus strong,
 .orderInfoItem strong {
     font-size: 14px;
-    color: #111827;
+    color: var(--foreground);
+    overflow-wrap: anywhere;
 }
 
 .pending {
     margin: 0;
-    color: #6b7280;
+    color: var(--muted-foreground);
     font-size: 13px;
     line-height: 1.5;
 }
@@ -187,4 +198,24 @@
     margin: 0;
     font-size: 18px;
     line-height: 1.4;
+    color: var(--foreground);
+}
+
+@media (max-width: 700px) {
+    .emptyCard {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .primaryButton,
+    .secondaryButton {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .primaryButton,
+    .secondaryButton {
+        transition: none;
+    }
 }

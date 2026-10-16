@@ -3,12 +3,20 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px 32px;
-    background: white;
-    border-bottom: 1px solid #e5e7eb;
+    gap: 24px;
+    padding: 16px 32px;
+    background: var(--background);
+    color: var(--foreground);
+    border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
     z-index: 100;
+}
+
+.rightSection {
+    display: flex;
+    align-items: center;
+    gap: 28px;
 }
 
 .links {
@@ -17,39 +25,284 @@
     gap: 24px;
 }
 
-.links a,
-.active {
+.links a {
+    color: var(--muted-foreground);
     text-decoration: none;
     font-weight: 500;
     font-size: 15px;
+    white-space: nowrap;
+    transition: color 0.2s ease;
 }
 
-.links a {
-    color: #374151;
-    transition: color 0.2s;
+.links a:hover,
+.links a.active {
+    color: var(--primary);
 }
 
-.links a:hover {
-    color: #2563eb;
-}
-
-.active {
-    color: #2563eb;
+.links a.active {
     font-weight: 600;
-    cursor: default;
+}
+
+.profileContainer {
+    position: relative;
+}
+
+.avatarButton {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    overflow: hidden;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    background: var(--surface-secondary);
+    color: var(--foreground);
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.avatarButton:hover {
+    border-color: var(--primary);
+}
+
+.avatarButton:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+}
+
+.avatarImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatarInitials {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.profileMenu {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 280px;
+    max-width: calc(100vw - 32px);
+    padding: 8px;
+    background: var(--surface);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
+    animation: menuAppear 0.16s ease-out;
+}
+
+.profileHeader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 12px;
+}
+
+.largeAvatar,
+.largeAvatarFallback {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.largeAvatar {
+    object-fit: cover;
+}
+
+.largeAvatarFallback {
+    background: var(--primary);
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.profileIdentity {
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+}
+
+.profileName {
+    color: var(--foreground);
+    font-size: 16px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.profileEmail {
+    margin-top: 4px;
+    color: var(--muted-foreground);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.menuDivider {
+    height: 1px;
+    margin: 6px 4px;
+    background: var(--border);
+}
+
+.menuItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 12px;
+    color: var(--foreground);
+    text-decoration: none;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.menuItem:hover {
+    background: var(--surface-secondary);
+}
+
+.menuIcon {
+    width: 20px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+}
+
+.themeRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 8px 12px;
+}
+
+.themeLabel {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.themeSwitch {
+    width: 42px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    padding: 3px;
+    border: none;
+    border-radius: 999px;
+    background: #9ca3af;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.themeSwitch[data-checked="true"] {
+    background: var(--primary);
+}
+
+.themeSwitchThumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.themeSwitch[data-checked="true"]
+.themeSwitchThumb {
+    transform: translateX(18px);
+}
+
+.themeSwitch:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+}
+
+.logoutWrapper {
+    padding: 2px;
+}
+
+@keyframes menuAppear {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @media (max-width: 768px) {
     .navbar {
-        padding: 16px 20px;
+        padding: 14px 20px;
+        gap: 12px;
+    }
+
+    .rightSection {
+        gap: 16px;
     }
 
     .links {
         gap: 16px;
     }
 
+    .links a {
+        font-size: 13px;
+    }
+
+    .avatarButton {
+        width: 38px;
+        height: 38px;
+    }
+}
+
+@media (max-width: 520px) {
+    .navbar {
+        flex-wrap: wrap;
+    }
+
+    .rightSection {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .links {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .profileMenu {
+        right: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .profileMenu {
+        animation: none;
+    }
+
+    .avatarButton,
     .links a,
-    .active {
-        font-size: 14px;
+    .themeSwitch,
+    .themeSwitchThumb,
+    .menuItem {
+        transition: none;
     }
 }
