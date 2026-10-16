@@ -144,7 +144,12 @@ export default function ProfilePage() {
   return (
     <main className={styles.page}>
       <ProfileHeader />
-      <PersonalInfoSection user={user} />
+      <PersonalInfoSection
+        user={user}
+        onUpdated={(updatedUser) => {
+            setUser(updatedUser);
+        }}
+      />
       <FinancialProfileSection
         profile={financialProfile}
         error={financialError}

@@ -7,7 +7,8 @@ import {
   requestOtp,
   forgotPassword,
   resetPassword,
-  getCurrentUser
+  getCurrentUser,
+  updateCurrentUser
 } from "../controllers/authController";
 
 import { authMiddleware } from "../middleware/authMiddleware";
@@ -21,5 +22,6 @@ router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.get("/me", authMiddleware, getCurrentUser);
+router.patch("/me", authMiddleware, updateCurrentUser);
 
 export default router;

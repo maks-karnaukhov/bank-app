@@ -372,3 +372,95 @@ export const getCurrentUser = async (
         });
     }
 };
+
+export const updateCurrentUser = async (
+  req: AuthRequest,
+  res: Response
+): Promise<Response> => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    const { firstName, lastName, phone } = req.body;
+
+    if (
+      typeof firstName !== "string" ||
+      typeof lastName !== "string" ||
+      typeof phone !== "string"
+    ) {
+      return res.status(400).json({
+        message: "Invalid personal information",
+      });
+    }
+
+    const normalizedFirstName = firstName.trim();
+    const normalizedLastName = lastName.trim();
+    const normalizedPhone = phone.trim();
+
+    if (
+      !normalizedFirstName ||
+      !normalizedLastName ||
+      !normalizedPhone
+    ) {
+      return res.status(400).json({
+        message: "First name, last name and phone are required",
+      });
+    }
+
+    const existingPhoneUser = await User.findOne({
+      phone: normalizedPhone,
+      _id: { $ne: userId },
+    });
+
+    if (existingPhoneUser) {
+      return res.status(409).json({
+        message: "Phone already exists",
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        code: "USER_NOT_FOUND",
+        message: "User not found",
+      });
+    }
+
+    user.firstName = normalizedFirstName;
+    user.lastName = normalizedLastName;
+    user.phone = normalizedPhone;
+
+    await user.save();
+
+    return res.status(200).json({
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: user.phone,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      isEmailVerified: user.isEmailVerified,
+    });
+  } catch (error) {
+    if (
+      error instanceof MongoServerError &&
+      error.code === 11000
+    ) {
+      return res.status(409).json({
+        message: "Phone already exists",
+      });
+    }
+
+    console.error("Update current user error:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};

@@ -79,6 +79,12 @@ export const closeSavingsAccount = (
 export const fetchCurrentUser = () =>
     api.get("/auth/me");
 
+export const updateCurrentUser = (data: {
+  firstName: string;
+  lastName: string;
+  phone: string;
+}) => api.patch("/auth/me", data);
+
 export const fetchCustomerFinancialProfile = () =>
   api.get("/api/customer-financial-profile");
 
