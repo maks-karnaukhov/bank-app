@@ -2,7 +2,10 @@
 
 import { useState, type FormEvent } from "react";
 
-import { updateCustomerFinancialProfile } from "@/services/api";
+import {
+  createCustomerFinancialProfile,
+  updateCustomerFinancialProfile,
+} from "@/services/api";
 
 import {
   employmentLabels,
@@ -30,13 +33,28 @@ export default function FinancialProfileSection({
   error,
   onUpdated,
 }: FinancialProfileSectionProps) {
+  const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState<FinancialProfileForm | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(
-    null
-  );
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isEmploymentTypeOpen, setIsEmploymentTypeOpen] = useState(false);
+
+  const handleCreate = () => {
+    setForm({
+      dateOfBirth: "",
+      monthlyIncome: "",
+      monthlyExternalDebtPayments: "0",
+      employmentType: "EMPLOYED",
+      employmentStartDate: "",
+    });
+
+    setFormError(null);
+    setSuccessMessage(null);
+    setIsCreating(true);
+    setIsEditing(true);
+  };
 
   const handleEdit = () => {
     if (!profile) return;
@@ -49,6 +67,7 @@ export default function FinancialProfileSection({
 
   const handleCancel = () => {
     setIsEditing(false);
+    setIsCreating(false);
     setForm(null);
     setFormError(null);
   };
@@ -117,18 +136,23 @@ export default function FinancialProfileSection({
       setFormError(null);
       setSuccessMessage(null);
 
-      const response = await updateCustomerFinancialProfile({
+      const data = {
         dateOfBirth: form.dateOfBirth,
         monthlyIncome: Number(form.monthlyIncome),
         monthlyExternalDebtPayments: Number(form.monthlyExternalDebtPayments),
         employmentType: form.employmentType,
         employmentStartDate: form.employmentStartDate,
-      });
+      };
+
+      const response = isCreating
+        ? await createCustomerFinancialProfile(data)
+        : await updateCustomerFinancialProfile(data);
 
       onUpdated(response.data);
       setIsEditing(false);
+      setIsCreating(false);
       setForm(null);
-      setSuccessMessage("Financial profile updated successfully.");
+      setSuccessMessage("Financial profile saved successfully.");
     } catch (saveError) {
       setFormError(getErrorMessage(saveError));
     } finally {
@@ -151,17 +175,6 @@ export default function FinancialProfileSection({
     );
   }
 
-  if (!profile) {
-    return (
-      <section className={styles.section}>
-        <h2>Financial profile</h2>
-        <div className={styles.emptyState}>
-          Financial profile is not available.
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section className={styles.section}>
       <div className={styles.sectionHeader}>
@@ -174,9 +187,9 @@ export default function FinancialProfileSection({
           <button
             type="button"
             className={styles.secondaryButton}
-            onClick={handleEdit}
+            onClick={profile ? handleEdit : handleCreate}
           >
-            Edit
+            {profile ? "Edit" : "Create financial profile"}
           </button>
         )}
       </div>
@@ -202,36 +215,58 @@ export default function FinancialProfileSection({
 
             <label className={styles.formField}>
               <span>Employment type</span>
-              <select
-                value={form.employmentType}
-                onChange={(event) =>
-                  handleChange(
-                    "employmentType",
-                    event.target.value
-                  )
-                }
-                required
-              >
-                {Object.entries(employmentLabels).map(
-                  ([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  )
-                )}
-              </select>
+
+              <div className={styles.selectWrapper}>
+                <select
+                  value={form.employmentType}
+                  onClick={() =>
+                    setIsEmploymentTypeOpen((current) => !current)
+                  }
+                  onChange={(event) => {
+                    handleChange("employmentType", event.target.value);
+                    setIsEmploymentTypeOpen(false);
+                  }}
+                  onBlur={() => setIsEmploymentTypeOpen(false)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape" || event.key === "Enter") {
+                      setIsEmploymentTypeOpen(false);
+                    }
+                  }}
+                  required
+                >
+                  {Object.entries(employmentLabels).map(
+                    ([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    )
+                  )}
+                </select>
+
+                <span
+                  className={`${styles.selectArrow} ${
+                    isEmploymentTypeOpen ? styles.selectArrowOpen : ""
+                  }`}
+                  aria-hidden="true"
+                />
+              </div>
             </label>
 
             <label className={styles.formField}>
-              <span>Monthly income</span>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.monthlyIncome}
-                onChange={(event) => handleChange("monthlyIncome", event.target.value)}
-                required
-              />
+              <span>Monthly income ($)</span>
+
+              <div className={styles.currencyInput}>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.monthlyIncome}
+                  onChange={(event) => handleChange("monthlyIncome", event.target.value)}
+                  required
+                />
+
+                <span className={styles.currencySymbol}>$</span>
+              </div>
             </label>
 
             <label className={styles.formField}>
@@ -282,38 +317,45 @@ export default function FinancialProfileSection({
             </button>
           </div>
         </form>
-      ) : (
-        <div className={styles.detailsGrid}>
-          <div className={styles.detail}>
-            <span>Date of birth</span>
-            <strong>{formatDate(profile.dateOfBirth)}</strong>
-          </div>
+        ) : profile ? (
+          <div className={styles.detailsGrid}>
+            <div className={styles.detail}>
+              <span>Date of birth</span>
+              <strong>{formatDate(profile.dateOfBirth)}</strong>
+            </div>
 
-          <div className={styles.detail}>
-            <span>Employment type</span>
-            <strong>
-              {employmentLabels[profile.employmentType]}
-            </strong>
-          </div>
+            <div className={styles.detail}>
+              <span>Employment type</span>
+              <strong>{employmentLabels[profile.employmentType]}</strong>
+            </div>
 
-          <div className={styles.detail}>
-            <span>Monthly income</span>
-            <strong>{formatAmount(profile.monthlyIncome)}</strong>
-          </div>
+            <div className={styles.detail}>
+              <span>Monthly income</span>
+              <strong>${formatAmount(profile.monthlyIncome)}</strong>
+            </div>
 
-          <div className={styles.detail}>
-            <span>Monthly external debt payments</span>
-            <strong>
-              {formatAmount(profile.monthlyExternalDebtPayments)}
-            </strong>
-          </div>
+            <div className={styles.detail}>
+              <span>Monthly external debt payments</span>
+              <strong>
+                {formatAmount(profile.monthlyExternalDebtPayments)}
+              </strong>
+            </div>
 
-          <div className={styles.detail}>
-            <span>Employment start date</span>
-            <strong>{formatDate(profile.employmentStartDate)}</strong>
+            <div className={styles.detail}>
+              <span>Employment start date</span>
+              <strong>{formatDate(profile.employmentStartDate)}</strong>
+            </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className={styles.emptyState}>
+            <p>You have not created a financial profile yet.</p>
+            <p>
+              Add your financial information to help us assess
+              your credit eligibility.
+            </p>
+          </div>
+        )
+      }
     </section>
   );
 }
