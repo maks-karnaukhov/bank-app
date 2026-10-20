@@ -34,3 +34,5 @@ logs/
 # Temporary
 tmp/
 temp/
+
+uploads/avatars/
