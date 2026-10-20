@@ -16,6 +16,7 @@ interface AuthState {
   error: AuthErrorState;
   token: string | null;
   initialized: boolean;
+  user: User | null;
 }
 
 const initialState: AuthState = {
@@ -24,6 +25,7 @@ const initialState: AuthState = {
   error: null,
   token: null,
   initialized: false,
+  user: null,
 };
 
  type AuthRejectValue = {
@@ -126,6 +128,10 @@ const authSlice = createSlice({
       state.token = action.payload;
     },
 
+    setUser(state, action: { payload: User | null }) {
+      state.user = action.payload;
+    },
+
     setInitialized(state) {
       state.initialized = true;
     },
@@ -189,5 +195,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { setAuth, setInitialized, logout } = authSlice.actions;
+export const { setAuth, setUser, setInitialized, logout } = authSlice.actions;
+
 export default authSlice.reducer;

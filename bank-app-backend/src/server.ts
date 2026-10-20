@@ -22,6 +22,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/uploads/avatars", express.static("uploads/avatars"));
 
 app.use('/auth', authRoutes);
 app.use('/transactions', transactionsRoutes);

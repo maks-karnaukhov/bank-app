@@ -194,6 +194,73 @@
     justify-content: space-between;
 }
 
+.avatarControl {
+  position: relative;
+  flex-shrink: 0;
+  width: 76px;
+  height: 76px;
+}
+
+.avatarButton {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.avatarButton:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+.avatarButton:disabled {
+  cursor: wait;
+}
+
+.avatarOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: rgb(0 0 0 / 55%);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.avatarButton:hover .avatarOverlay,
+.avatarButton:focus-visible .avatarOverlay,
+.avatarButton:disabled .avatarOverlay {
+  opacity: 1;
+}
+
+.avatarInput {
+  display: none;
+}
+
+.avatarFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--surface-secondary);
+  color: var(--primary);
+  font-size: 24px;
+  font-weight: 700;
+}
+
 @media (max-width: 640px) {
   .personalCard {
     padding: 20px 16px;
@@ -227,5 +294,10 @@
 
   .formActions {
     flex-wrap: wrap;
+  }
+
+  .avatarControl {
+    width: 60px;
+    height: 60px;
   }
 }

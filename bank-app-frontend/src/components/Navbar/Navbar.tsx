@@ -72,19 +72,12 @@ export default function Navbar({
         const handlePointerDown = (
             event: MouseEvent
         ) => {
-            if (
-                menuRef.current &&
-                !menuRef.current.contains(
-                    event.target as Node
-                )
-            ) {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
                 setIsMenuOpen(false);
             }
         };
 
-        const handleKeyDown = (
-            event: KeyboardEvent
-        ) => {
+        const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 setIsMenuOpen(false);
             }
@@ -111,13 +104,15 @@ export default function Navbar({
     const firstName = user?.firstName ?? "";
     const lastName = user?.lastName ?? "";
 
-    const fullName =
-        `${firstName} ${lastName}`.trim() ||
-        "Your Profile";
+    const fullName = `${firstName} ${lastName}`.trim() || "Your Profile";
 
-    const initials =
-        `${firstName.charAt(0)}${lastName.charAt(0)}`
-            .toUpperCase() || "U";
+    const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "U";
+
+    const avatarSrc = user?.avatarUrl
+        ? user.avatarUrl.startsWith("http")
+            ? user.avatarUrl
+            : `http://localhost:5000${user.avatarUrl}`
+        : null;
 
     return (
         <nav className={styles.navbar}>
@@ -126,9 +121,7 @@ export default function Navbar({
             <div className={styles.rightSection}>
                 <div className={styles.links}>
                     {navigation.map((item) => {
-                        const isActive =
-                            pathname === item.href ||
-                            pathname.startsWith(`${item.href}/`);
+                        const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
                         return (
                             <Link
@@ -155,9 +148,9 @@ export default function Navbar({
                         aria-expanded={isMenuOpen}
                         aria-haspopup="menu"
                     >
-                        {user?.avatarUrl ? (
+                        {avatarSrc ? (
                             <Image
-                                src={user.avatarUrl}
+                                src={avatarSrc}
                                 alt=""
                                 width={42}
                                 height={42}
@@ -177,9 +170,9 @@ export default function Navbar({
                             role="menu"
                         >
                             <div className={styles.profileHeader}>
-                                {user?.avatarUrl ? (
+                                {avatarSrc ? (
                                     <Image
-                                        src={user.avatarUrl}
+                                        src={avatarSrc}
                                         alt=""
                                         width={64}
                                         height={64}
@@ -270,9 +263,7 @@ export default function Navbar({
                             <div className={styles.menuDivider} />
 
                             <div className={styles.logoutWrapper}>
-                                <LogoutButton
-                                    onLogout={() => setIsMenuOpen(false)}
-                                />
+                                <LogoutButton onLogout={() => setIsMenuOpen(false)} />
                             </div>
                         </div>
                     )}

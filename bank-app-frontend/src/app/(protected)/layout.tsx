@@ -17,6 +17,7 @@ export default function ProtectedLayout({
   const {
     isAuthenticated,
     initialized,
+    user,
   } = useSelector(
     (state: RootState) => state.auth
   );
@@ -45,7 +46,7 @@ export default function ProtectedLayout({
 
   return (
     <>
-      <Navbar />
+      <Navbar user={user} />
       {children}
       <Footer />
     </>

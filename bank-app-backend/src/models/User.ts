@@ -16,7 +16,6 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      index: true,
     },
 
     email: {
@@ -68,7 +67,5 @@ UserSchema.index(
     },
   }
 );
-UserSchema.index({ email: 1 }, { unique: true });
-UserSchema.index({ phone: 1 }, { unique: true });
 
 export default mongoose.model("User", UserSchema);

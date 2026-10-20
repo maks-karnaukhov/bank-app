@@ -76,14 +76,25 @@ export const closeSavingsAccount = (
         `/api/savings-accounts/${accountId}`
     );
 
+
 export const fetchCurrentUser = () =>
-    api.get("/auth/me");
+  api.get("/auth/me");
 
 export const updateCurrentUser = (data: {
   firstName: string;
   lastName: string;
   phone: string;
 }) => api.patch("/auth/me", data);
+
+export const uploadCurrentUserAvatar = (file: File) => {
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  return api.post<{
+    message: string;
+    avatarUrl: string;
+  }>("/auth/avatar", formData);
+};
 
 export const fetchCustomerFinancialProfile = () =>
   api.get("/api/customer-financial-profile");

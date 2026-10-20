@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { isAxiosError } from "axios";
+import { useDispatch } from "react-redux";
+
+import { setUser as setAuthUser } from "@/features/auth/authSlice";
+import type { AppDispatch } from "@/store/store";
 
 import type {
   CurrentUser,
@@ -29,6 +33,8 @@ import FinancialProfileSection from "@/components/FinancialProfileSection/Financ
 import CreditRatingSection from "@/components/CreditRatingSection/CreditRatingSection";
 
 export default function ProfilePage() {
+  const dispatch = useDispatch<AppDispatch>();
+
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [financialProfile, setFinancialProfile] = useState<FinancialProfile | null>(null);
   const [creditRating, setCreditRating] = useState<CreditRating | null>(null);
@@ -147,7 +153,8 @@ export default function ProfilePage() {
       <PersonalInfoSection
         user={user}
         onUpdated={(updatedUser) => {
-            setUser(updatedUser);
+          setUser(updatedUser);
+          dispatch(setAuthUser(updatedUser));
         }}
       />
       <FinancialProfileSection

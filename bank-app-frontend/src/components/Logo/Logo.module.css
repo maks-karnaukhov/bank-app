@@ -2,7 +2,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 0;
+    margin-bottom: 28px;
     flex-shrink: 0;
 }
 
@@ -21,7 +21,8 @@
 }
 
 .logoText {
-    color: var(--foreground);
+    color: #111827;
     font-size: 18px;
     font-weight: 700;
+    white-space: nowrap;
 }
