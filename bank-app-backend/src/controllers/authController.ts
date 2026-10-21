@@ -465,7 +465,6 @@ export const updateCurrentUser = async (
   }
 };
 
-
 export const uploadCurrentUserAvatar = async (
   req: AuthRequest,
   res: Response
@@ -501,5 +500,344 @@ export const uploadCurrentUserAvatar = async (
     console.error("Upload avatar error:", error);
 
     return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const changePassword = async (
+  req: AuthRequest,
+  res: Response
+): Promise<Response> => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    if (typeof currentPassword !== "string" || typeof newPassword !== "string") {
+      return res.status(400).json({
+        message: "Current password and new password are required",
+      });
+    }
+
+    if (
+      newPassword.length < 8 ||
+      !/[A-Z]/.test(newPassword) ||
+      !/[a-z]/.test(newPassword) ||
+      !/[^A-Za-z0-9]/.test(newPassword)
+    ) {
+      return res.status(400).json({
+        message: "New password must contain at least 8 characters, an uppercase letter, a lowercase letter and a special character",
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        code: "USER_NOT_FOUND",
+        message: "User not found",
+      });
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.passwordHash
+    );
+
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({
+        code: "INVALID_CURRENT_PASSWORD",
+        message: "Current password is incorrect",
+      });
+    }
+
+    const isSamePassword = await bcrypt.compare(
+      newPassword,
+      user.passwordHash
+    );
+
+    if (isSamePassword) {
+      return res.status(400).json({
+        code: "PASSWORD_UNCHANGED",
+        message: "New password must differ from the current password",
+      });
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    return res.status(200).json({
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    console.error("Change password error:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+export const requestEmailChange = async (
+  req: AuthRequest,
+  res: Response
+): Promise<Response> => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    const { newEmail, currentPassword } = req.body;
+
+    if (
+      typeof newEmail !== "string" ||
+      typeof currentPassword !== "string" ||
+      !newEmail.trim() ||
+      !currentPassword
+    ) {
+      return res.status(400).json({
+        message: "New email and current password are required",
+      });
+    }
+
+    const normalizedEmail = newEmail.trim().toLowerCase();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return res.status(400).json({
+        message: "Invalid email format",
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        code: "USER_NOT_FOUND",
+        message: "User not found",
+      });
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.passwordHash
+    );
+
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({
+        code: "INVALID_CURRENT_PASSWORD",
+        message: "Current password is incorrect",
+      });
+    }
+
+    if (normalizedEmail === user.email.toLowerCase()) {
+      return res.status(400).json({
+        code: "EMAIL_UNCHANGED",
+        message: "New email must differ from current email",
+      });
+    }
+
+    const existingUser = await User.findOne({
+      email: normalizedEmail,
+    });
+
+    if (existingUser) {
+      return res.status(409).json({
+        code: "EMAIL_ALREADY_EXISTS",
+        message: "This email is already registered",
+      });
+    }
+
+    await generateOtp(
+      normalizedEmail,
+      user._id.toString(),
+      "EMAIL_CHANGE"
+    );
+
+    return res.status(200).json({
+      message: "Verification code sent to the new email",
+    });
+  } catch (error) {
+    console.error("Request email change error:", error);
+
+    return res.status(500).json({
+      message: "Failed to send verification code",
+    });
+  }
+};
+
+export const confirmEmailChange = async (
+  req: AuthRequest,
+  res: Response
+): Promise<Response> => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    const { newEmail, code } = req.body;
+
+    if (
+      typeof newEmail !== "string" ||
+      typeof code !== "string" ||
+      !newEmail.trim() ||
+      !/^\d{6}$/.test(code)
+    ) {
+      return res.status(400).json({
+        message: "A valid email and six-digit code are required",
+      });
+    }
+
+    const normalizedEmail = newEmail.trim().toLowerCase();
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        code: "USER_NOT_FOUND",
+        message: "User not found",
+      });
+    }
+
+    const verification = await VerificationCode.findOne({
+      userId: user._id,
+      email: normalizedEmail,
+      purpose: "EMAIL_CHANGE",
+      used: false,
+      status: "ACTIVE",
+    });
+
+    if (!verification) {
+      return res.status(400).json({
+        code: "INVALID_OR_EXPIRED_CODE",
+        message: "Verification code is invalid or expired",
+      });
+    }
+
+    if (verification.expiresAt <= new Date()) {
+      verification.status = "EXPIRED";
+      await verification.save();
+
+      return res.status(400).json({
+        code: "CODE_EXPIRED",
+        message: "Verification code has expired",
+      });
+    }
+
+    if (verification.attemptsLeft <= 0) {
+      verification.status = "BLOCKED";
+      await verification.save();
+
+      return res.status(403).json({
+        code: "NO_ATTEMPTS_LEFT",
+        message: "No verification attempts left. Request a new code.",
+      });
+    }
+
+    const isCodeValid = await bcrypt.compare(
+      code,
+      verification.codeHash
+    );
+
+    if (!isCodeValid) {
+      verification.attemptsLeft -= 1;
+
+      if (verification.attemptsLeft <= 0) {
+        verification.status = "BLOCKED";
+      }
+
+      await verification.save();
+
+      return res.status(
+        verification.attemptsLeft <= 0 ? 403 : 400
+      ).json({
+        code:
+          verification.attemptsLeft <= 0
+            ? "NO_ATTEMPTS_LEFT"
+            : "INVALID_CODE",
+        message:
+          verification.attemptsLeft <= 0
+            ? "No verification attempts left. Request a new code."
+            : "Incorrect verification code",
+        attemptsLeft: verification.attemptsLeft,
+      });
+    }
+
+    const existingUser = await User.findOne({
+      email: normalizedEmail,
+      _id: { $ne: user._id },
+    });
+
+    if (existingUser) {
+      verification.status = "USED";
+      verification.used = true;
+      await verification.save();
+
+      return res.status(409).json({
+        code: "EMAIL_ALREADY_EXISTS",
+        message: "This email is already registered",
+      });
+    }
+
+    user.email = normalizedEmail;
+    user.isEmailVerified = true;
+    await user.save();
+
+    verification.status = "USED";
+    verification.used = true;
+    await verification.save();
+
+    await VerificationCode.updateMany(
+      {
+        userId: user._id,
+        purpose: "EMAIL_CHANGE",
+        used: false,
+        _id: { $ne: verification._id },
+      },
+      {
+        $set: {
+          used: true,
+          status: "USED",
+        },
+      }
+    );
+
+    return res.status(200).json({
+      message: "Email changed successfully",
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+        isEmailVerified: user.isEmailVerified,
+      },
+    });
+  } catch (error) {
+    console.error("Confirm email change error:", error);
+
+    if (error instanceof MongoServerError && error.code === 11000) {
+      return res.status(409).json({
+        code: "EMAIL_ALREADY_EXISTS",
+        message: "This email is already registered",
+      });
+    }
+
+    return res.status(500).json({
+      message: "Failed to confirm email change",
+    });
   }
 };

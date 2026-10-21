@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 
 const VerificationCodeSchema = new mongoose.Schema(
   {
@@ -19,6 +19,7 @@ const VerificationCodeSchema = new mongoose.Schema(
       enum: [
         "EMAIL_VERIFY",
         "PASSWORD_RESET",
+        "EMAIL_CHANGE",
       ],
       required: true,
     },

@@ -9,12 +9,19 @@ import type { User } from "@/types/types";
 interface IProps {
   email: string;
   purpose: OtpPurpose;
+  currentPassword?: string;
   onSuccess: (user?: User) => void;
   onClose: () => void;
 }
 
-export default function OTPModal({ email, purpose, onSuccess, onClose }: IProps) {
-  const otp = useOtpFlow(email, purpose, onSuccess);
+export default function OTPModal({
+  email,
+  purpose,
+  currentPassword,
+  onSuccess,
+  onClose,
+}: IProps) {
+  const otp = useOtpFlow(email, purpose, onSuccess, currentPassword);
 
   if (otp.status === "BLOCKED") {
     return <OTPBlockedModal onClose={onClose} />;
@@ -32,9 +39,13 @@ export default function OTPModal({ email, purpose, onSuccess, onClose }: IProps)
             <input
               key={i}
               id={`otp-${i}`}
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
               value={digit}
               maxLength={1}
               onChange={(e) => otp.handleChange(e.target.value, i)}
+              onKeyDown={(e) => otp.handleKeyDown(e, i)}
             />
           ))}
         </div>

@@ -130,3 +130,21 @@ export const updateCustomerFinancialProfile = (data: {
     | "OTHER";
   employmentStartDate: string;
 }) => api.patch("/api/customer-financial-profile", data);
+
+export const changePassword = (data: {
+  currentPassword: string;
+  newPassword: string;
+}) =>
+  api.post("/auth/change-password", data);
+
+export const requestEmailChange = (data: {
+  newEmail: string;
+  currentPassword: string;
+}) =>
+  api.post("/auth/request-email-change", data);
+
+export const confirmEmailChange = (data: {
+  newEmail: string;
+  code: string;
+}) =>
+  api.post("/auth/confirm-email-change", data);

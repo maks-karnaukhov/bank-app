@@ -1,13 +1,19 @@
-
 "use client";
 
+import axios from "axios";
 import { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/store/store";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/store/store";
 import * as Yup from "yup";
 import { ShieldCheck } from "lucide-react";
 import { newPasswordSchema } from "@/validation/NewPasswordSchema";
+import {
+  changePassword,
+  requestEmailChange,
+} from "@/services/api";
+import OTPModal from "@/components/OTPModal/OTPModal";
+import { setUser } from "@/features/auth/authSlice";
 import styles from "./Settings.module.css";
 
 const emailSchema = Yup.object({
@@ -22,6 +28,9 @@ const emailSchema = Yup.object({
       [Yup.ref("email")],
       "New email must be different from current email"
     ),
+
+  currentPassword: Yup.string()
+    .required("Current password is required"),
 });
 
 const passwordSettingsSchema = newPasswordSchema.shape({
@@ -32,6 +41,11 @@ const passwordSettingsSchema = newPasswordSchema.shape({
 export default function SettingsPage() {
   const [emailMessage, setEmailMessage] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
+  const [emailChangePassword, setEmailChangePassword] = useState("");
+
+  const dispatch = useDispatch<AppDispatch>();
 
   const user = useSelector((state: RootState) => state.auth.user);
 
@@ -60,11 +74,40 @@ export default function SettingsPage() {
           initialValues={{
             email: user?.email ?? "",
             newEmail: "",
+            currentPassword: "",
           }}
           enableReinitialize
           validationSchema={emailSchema}
-          onSubmit={() => {
-            setEmailMessage("Email update will be available soon.");
+          onSubmit={async (values, { setSubmitting, resetForm }) => {
+            setEmailMessage("");
+
+            try {
+                const response = await requestEmailChange({
+                    newEmail: values.newEmail,
+                    currentPassword: values.currentPassword,
+                });
+
+                setEmailChangePassword(values.currentPassword);
+                setPendingEmail(values.newEmail.trim().toLowerCase());
+                setIsEmailModalOpen(true);
+                setEmailMessage(response.data.message || "Verification code sent to your new email.");
+
+                resetForm({
+                    values: {
+                        email: user?.email ?? "",
+                        newEmail: "",
+                        currentPassword: "",
+                    },
+                });
+            } catch (error) {
+                if (axios.isAxiosError(error)) {
+                    setEmailMessage(error.response?.data?.message || "Failed to send verification code. Please try again.");
+                } else {
+                    setEmailMessage("An unexpected error occurred. Please try again.");
+                }
+            } finally {
+                setSubmitting(false);
+            }
           }}
         >
           {({ isSubmitting }) => (
@@ -99,7 +142,21 @@ export default function SettingsPage() {
                 component="p"
                 className={styles.errorMessage}
               />
-
+                <label htmlFor="currentPassword">
+                Current password
+              </label>
+              <Field
+                id="currentPassword"
+                name="currentPassword"
+                type="password"
+                placeholder="Enter current password"
+                autoComplete="current-password"
+              />
+              <ErrorMessage
+                name="currentPassword"
+                component="p"
+                className={styles.errorMessage}
+              />
               {emailMessage && (
                 <p className={styles.message} role="status">
                   {emailMessage}
@@ -139,11 +196,26 @@ export default function SettingsPage() {
             confirmPassword: "",
           }}
           validationSchema={passwordSettingsSchema}
-          onSubmit={() => {
-            setPasswordMessage(
-              "Password update will be available soon."
-            );
-          }}
+          onSubmit={async (values, { resetForm }) => {
+            setPasswordMessage("");
+
+            try {
+                const response = await changePassword({
+                    currentPassword: values.currentPassword,
+                    newPassword: values.password,
+                });
+
+                setPasswordMessage(response.data.message || "Password changed successfully.");
+
+                resetForm();
+            } catch (error) {
+                if (axios.isAxiosError(error)) {
+                    setPasswordMessage(error.response?.data?.message || "Failed to change password. Please try again.");
+                } else {
+                    setPasswordMessage("An unexpected error occurred. Please try again.");
+                }
+            }
+            }}
         >
           {({ isSubmitting }) => (
             <Form className={styles.form} noValidate>
@@ -210,6 +282,28 @@ export default function SettingsPage() {
           )}
         </Formik>
       </section>
+      {isEmailModalOpen && (
+        <OTPModal
+            email={pendingEmail}
+            purpose="EMAIL_CHANGE"
+            currentPassword={emailChangePassword}
+            onSuccess={(updatedUser) => {
+                if (updatedUser) {
+                    dispatch(setUser(updatedUser));
+                }
+
+                setIsEmailModalOpen(false);
+                setPendingEmail("");
+                setEmailMessage("Email changed successfully.");
+                setEmailChangePassword("");
+            }}
+            onClose={() => {
+                setIsEmailModalOpen(false);
+                setPendingEmail("");
+                setEmailChangePassword("");
+            }}
+        />
+      )}
     </main>
   );
 }

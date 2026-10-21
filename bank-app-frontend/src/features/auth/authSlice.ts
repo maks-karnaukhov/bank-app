@@ -1,6 +1,11 @@
 import type { AxiosError } from "axios";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { loginUser, registerUser, forgotPassword } from "@/services/api";
+import {
+  loginUser,
+  registerUser,
+  forgotPassword,
+  fetchCurrentUser,
+} from "@/services/api";
 import { mapAuthError } from "@/services/auth/mapAuthError";
 import { AuthErrorCode } from "@/services/auth/authErrors";
 import { User } from "@/types/types";
@@ -38,9 +43,19 @@ export const loginUserThunk = createAsyncThunk(
   "auth/loginUser",
   async (credentials: { email: string; password: string }) => {
     const response = await loginUser(credentials);
-    return response.data;
+    const { token } = response.data as { token: string };
+
+    localStorage.setItem("token", token);
+
+    const userResponse = await fetchCurrentUser();
+
+    return {
+      token,
+      user: userResponse.data as User,
+    };
   }
 );
+
 export const registerUserThunk = createAsyncThunk<
   User,
   {
@@ -151,8 +166,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.token = action.payload.token;
-
-        localStorage.setItem("token", action.payload.token);
+        state.user = action.payload.user;
       })
       .addCase(loginUserThunk.rejected, (state, action) => {
         state.loading = false;

@@ -21,7 +21,8 @@ export interface VerifyOtpResponse {
 
 export type OtpPurpose =
   | "EMAIL_VERIFY"
-  | "PASSWORD_RESET";
+  | "PASSWORD_RESET"
+  | "EMAIL_CHANGE";
 
 export const authApi = {
   register(data: RegisterDto) {
@@ -52,6 +53,23 @@ export const authApi = {
       code,
       purpose,
     });
+  },
+
+  requestEmailChange(data: {
+    newEmail: string;
+    currentPassword: string;
+  }) {
+    return api.post("/auth/request-email-change", data);
+  },
+
+  confirmEmailChange(data: {
+    newEmail: string;
+    code: string;
+  }) {
+    return api.post<VerifyOtpResponse>(
+      "/auth/confirm-email-change",
+      data
+    );
   },
 
   resetPassword(

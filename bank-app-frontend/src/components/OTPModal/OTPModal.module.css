@@ -30,10 +30,15 @@
 .inputs input {
   width: 40px;
   height: 48px;
+  box-sizing: border-box;
   text-align: center;
   font-size: 18px;
+  color: #111827;
+  background-color: #ffffff;
   border: 1px solid #d1d5db;
   border-radius: 8px;
+  caret-color: #111827;
+  color-scheme: light;
 }
 
 .button {

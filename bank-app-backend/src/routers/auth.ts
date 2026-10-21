@@ -8,6 +8,9 @@ import {
   requestOtp,
   forgotPassword,
   resetPassword,
+  changePassword,
+  requestEmailChange,
+  confirmEmailChange,
   getCurrentUser,
   updateCurrentUser,
   uploadCurrentUserAvatar,
@@ -24,6 +27,9 @@ router.post("/request-otp", requestOtp);
 router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+router.post("/change-password", authMiddleware, changePassword);
+router.post("/request-email-change", authMiddleware, requestEmailChange);
+router.post("/confirm-email-change", authMiddleware, confirmEmailChange);
 router.get("/me", authMiddleware, getCurrentUser);
 router.patch("/me", authMiddleware, updateCurrentUser);
 router.post(

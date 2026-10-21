@@ -12,7 +12,8 @@ type Status =
 export function useOtpFlow(
   email: string,
   purpose: OtpPurpose,
-  onSuccess: (user?: User) => void
+  onSuccess: (user?: User) => void,
+  currentPassword?: string
 ) {
   const [code, setCode] = useState<string[]>(Array(6).fill(""));
   const [loading, setLoading] = useState(false);
@@ -51,14 +52,20 @@ export function useOtpFlow(
       setLoading(true);
       setError("");
 
-      const response = await authApi.verifyOtp(
-        email,
-        fullCode,
-        purpose
-      );
+      if (purpose === "EMAIL_CHANGE") {
+        const response = await authApi.confirmEmailChange({
+          newEmail: email,
+          code: fullCode,
+        });
 
-      setStatus("VERIFIED");
-      onSuccess(response.data.user);
+        setStatus("VERIFIED");
+        onSuccess(response.data.user);
+      } else {
+        const response = await authApi.verifyOtp(email, fullCode, purpose);
+
+        setStatus("VERIFIED");
+        onSuccess(response.data.user);
+      }
 
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -91,10 +98,19 @@ export function useOtpFlow(
       setLoading(true);
       setError("");
 
-      await authApi.requestOtp(
-        email,
-        purpose
-      );
+      if (purpose === "EMAIL_CHANGE") {
+        if (!currentPassword) {
+          setError("Current password is required to resend the code.");
+          return;
+        }
+
+        await authApi.requestEmailChange({
+          newEmail: email,
+          currentPassword,
+        });
+      } else {
+        await authApi.requestOtp(email, purpose);
+      }
 
       setCode(Array(6).fill(""));
       setSecondsLeft(90);
@@ -125,13 +141,44 @@ export function useOtpFlow(
     setCode(newCode);
 
     const next = document.getElementById(`otp-${index + 1}`);
-    if (value && next) (next as HTMLInputElement).focus();
+    if (value && next) {
+      (next as HTMLInputElement).focus();
+    }
+  };
+
+  const handleKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    if (event.key !== "Backspace") return;
+
+    event.preventDefault();
+
+    const newCode = [...code];
+
+    if (newCode[index]) {
+      newCode[index] = "";
+    } else if (index > 0) {
+      newCode[index - 1] = "";
+    }
+
+    setCode(newCode);
+
+    const previousIndex = newCode[index] === "" && index > 0
+      ? index - 1
+      : index;
+
+    const input = document.getElementById(`otp-${previousIndex}`);
+
+    if (input) {
+      (input as HTMLInputElement).focus();
+    }
   };
 
   return {
     code,
     handleChange,
-
+    handleKeyDown,
     verify,
     resend,
 

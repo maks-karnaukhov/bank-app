@@ -4,7 +4,8 @@ import { sendOtpEmail } from "./email";
 
 export type OtpPurpose =
   | "EMAIL_VERIFY"
-  | "PASSWORD_RESET";
+  | "PASSWORD_RESET"
+  | "EMAIL_CHANGE";
 
 export const generateOtp = async (email: string, userId: string,  purpose: OtpPurpose) => {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
