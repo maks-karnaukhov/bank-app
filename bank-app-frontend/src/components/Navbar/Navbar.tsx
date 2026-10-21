@@ -185,8 +185,7 @@ export default function Navbar({
                                     </div>
                                 )}
 
-                                <div className={styles.profileIdentity}
-                                >
+                                <div className={styles.profileIdentity}>
                                     <p className={styles.profileName}>
                                         {fullName}
                                     </p>
@@ -198,9 +197,7 @@ export default function Navbar({
                                     )}
                                 </div>
                             </div>
-
                             <div className={styles.menuDivider} />
-
                             <Link
                                 href="/profile"
                                 className={styles.menuItem}
@@ -216,7 +213,21 @@ export default function Navbar({
 
                                 <span>My Profile</span>
                             </Link>
+                            <Link
+                                href="/settings"
+                                className={styles.menuItem}
+                                role="menuitem"
+                                onClick={() => setIsMenuOpen(false)}
+                            >
+                                <span
+                                    className={styles.menuIcon}
+                                    aria-hidden="true"
+                                >
+                                    ⚙
+                                </span>
 
+                                <span>Settings</span>
+                            </Link>
                             <Link
                                 href="/loans/calculator"
                                 className={styles.menuItem}
@@ -232,9 +243,7 @@ export default function Navbar({
 
                                 <span>Get a Loan</span>
                             </Link>
-
                             <div className={styles.menuDivider} />
-
                             <div className={styles.themeRow}>
                                 <span
                                     className={styles.menuIcon}
