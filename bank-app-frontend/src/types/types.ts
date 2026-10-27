@@ -1,9 +1,13 @@
 export interface Transactions {
-  id: number;
+  id: string;
   from: string;
   to: string;
   amount: number;
+  currency: string;
   date: string;
+  direction: "incoming" | "outgoing";
+  fromCard?: string;
+  toCard?: string;
 }
 
 export interface User {

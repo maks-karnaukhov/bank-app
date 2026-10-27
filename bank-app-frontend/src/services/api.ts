@@ -1,5 +1,29 @@
 import axios from "axios";
 
+export interface TransferRecipientLookup {
+  found: boolean;
+  recipient: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
+  cards: TransferRecipientCard[];
+  matchedCardId: string | null;
+  message: string | null;
+}
+
+export interface CreateTransferData {
+  fromCardId: string;
+  amount: number;
+  transferType: TransferType;
+  recipientMethod?: RecipientMethod;
+  recipientValue?: string;
+  toCardId?: string;
+  anyCard?: boolean;
+  to?: string;
+}
+
 export const api = axios.create({
   baseURL: "http://localhost:5000",
 });
@@ -34,13 +58,43 @@ export const registerUser = (data: {
 export const fetchTransactions = () =>
   api.get("/transactions");
 
-export const createTransaction = (
-  data: {
-    to: string;
-    amount: number;
-  }
-) =>
-  api.post("/transfer", data);
+export type RecipientMethod = "email" | "phone" | "card";
+export type TransferType = "own" | "recipient";
+
+export interface TransferRecipientCard {
+  id: string;
+  name: string;
+  type: "DEBIT" | "CREDIT";
+  currency: string;
+  last4: string;
+  color: string;
+  network: "VISA" | "MASTERCARD" | "MIR" | "AMEX";
+  isVirtual: boolean;
+  createdAt: string;
+}
+
+export const lookupTransferRecipient = (params: {
+  method: RecipientMethod;
+  value: string;
+  fromCardId: string;
+}) =>
+  api.get<TransferRecipientLookup>("/transfer/recipient", {
+    params,
+  });
+
+export const createTransaction = (data: CreateTransferData) =>
+  api.post<{
+    success: boolean;
+    transaction: {
+      id: string;
+      from: string;
+      to: string;
+      amount: number;
+      currency: string;
+      date: string;
+      direction: "outgoing";
+    };
+  }>("/transfer", data);
 
 export const forgotPassword = (email: string) => 
   api.post("/auth/forgot-password", { email });

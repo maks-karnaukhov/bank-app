@@ -1,16 +1,64 @@
-import { Request, Response } from "express";
-import Transaction from "../models/Transaction";
+import { Response } from "express";
 
-export const getTransactions = async (req: Request, res: Response) => {
+import Transaction from "../models/Transaction";
+import { AuthRequest } from "../middleware/authMiddleware";
+
+export const getTransactions = async (
+  req: AuthRequest,
+  res: Response,
+) => {
   try {
-    const userId = (req as any).userId;
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
 
     const transactions = await Transaction.find({
-      from: userId,
-    }).sort({ createdAt: -1 });
+      $or: [
+        { from: userId },
+        { to: userId },
+      ],
+    })
+      .sort({ createdAt: -1 })
+      .populate("from", "email firstName lastName")
+      .populate("to", "email firstName lastName")
+      .populate("fromCard", "name last4")
+      .populate("toCard", "name last4")
+      .lean();
 
-    return res.status(200).json(transactions);
+    const result = transactions.map((transaction: any) => {
+      const senderId = String(
+        transaction.from?._id ?? transaction.from,
+      );
+
+      const recipientId = String(
+        transaction.to?._id ?? transaction.to,
+      );
+
+      const isOutgoing = senderId === userId;
+
+      return {
+        id: String(transaction._id),
+        from: transaction.from?.email ?? senderId,
+        to: transaction.to?.email ?? recipientId,
+        amount: transaction.amount,
+        currency: transaction.currency ?? "USD",
+        date: transaction.createdAt ? new Date(transaction.createdAt).toISOString() : "",
+        direction: isOutgoing ? "outgoing" : "incoming",
+        fromCard: transaction.fromCard ? `${transaction.fromCard.name} •••• ${transaction.fromCard.last4}` : "",
+        toCard: transaction.toCard ? `${transaction.toCard.name} •••• ${transaction.toCard.last4}` : "",
+      };
+    });
+
+    return res.status(200).json(result);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    console.error("Get transactions error:", error);
+
+    return res.status(500).json({
+      message: "Failed to load transactions",
+    });
   }
 };
