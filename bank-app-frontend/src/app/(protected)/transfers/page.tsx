@@ -13,6 +13,8 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 
 import CardSelect from "@/components/CardSelect/CardSelect";
+import TransferSuccessModal from "@/components/TransferSuccessModal/TransferSuccessModal";
+import type { Transactions } from "@/types/types";
 
 import {
   lookupTransferRecipient,
@@ -65,10 +67,20 @@ const parseAmount = (value: string): number | null => {
 
 const formatAmountInput = (value: string): string => {
   const separatorIndex = value.search(/[.,]/);
-  const integerPart = separatorIndex === -1 ? value : value.slice(0, separatorIndex);
-  const decimalPart = separatorIndex === -1 ? "" : value.slice(separatorIndex + 1);
-  const separator = separatorIndex === -1 ? "" : value[separatorIndex];
-  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  const integerPart =
+    separatorIndex === -1
+      ? value
+      : value.slice(0, separatorIndex);
+  const decimalPart =
+    separatorIndex === -1
+      ? ""
+      : value.slice(separatorIndex + 1);
+  const separator =
+    separatorIndex === -1 ? "" : value[separatorIndex];
+  const formattedInteger = integerPart.replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    " ",
+  );
 
   return `${formattedInteger}${separator}${decimalPart}`;
 };
@@ -95,7 +107,8 @@ const sanitizeAmountInput = (value: string): string => {
     .replace(/[.,]/g, "")
     .slice(0, 2);
 
-  const separator = result[separatorIndex] === "," ? "," : ".";
+  const separator =
+    result[separatorIndex] === "," ? "," : ".";
 
   return `${integerPart}${separator}${decimalPart}`;
 };
@@ -103,10 +116,9 @@ const sanitizeAmountInput = (value: string): string => {
 export default function TransferPage() {
   const dispatch = useDispatch<AppDispatch>();
 
-  const {
-    loading,
-    error,
-  } = useSelector((state: RootState) => state.transactions);
+  const { loading, error } = useSelector(
+    (state: RootState) => state.transactions,
+  );
 
   const {
     cards,
@@ -126,7 +138,14 @@ export default function TransferPage() {
   const [lookupError, setLookupError] = useState("");
   const [anyCard, setAnyCard] = useState(false);
   const [amount, setAmount] = useState("");
-  const [success, setSuccess] = useState("");
+
+  const [completedTransfer, setCompletedTransfer] = useState<{
+    transaction: Transactions;
+    recipientLabel: string;
+    destinationCardLast4?: string;
+    isOwnTransfer: boolean;
+  } | null>(null);
+
   const methodSelectRef = useRef<HTMLDivElement>(null);
   const methodTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -139,7 +158,9 @@ export default function TransferPage() {
     { value: "card", label: "Card number" },
   ];
 
-  const selectedMethod = recipientMethods.find((method) => method.value === recipientMethod);
+  const selectedMethod = recipientMethods.find(
+    (method) => method.value === recipientMethod,
+  );
 
   useEffect(() => {
     dispatch(fetchCardsThunk());
@@ -149,7 +170,10 @@ export default function TransferPage() {
     if (!isMethodOpen) return;
 
     const handleOutsideClick = (event: PointerEvent) => {
-      if (methodSelectRef.current && !methodSelectRef.current.contains(event.target as Node)) {
+      if (
+        methodSelectRef.current &&
+        !methodSelectRef.current.contains(event.target as Node)
+      ) {
         setIsMethodOpen(false);
       }
     };
@@ -165,58 +189,64 @@ export default function TransferPage() {
     document.addEventListener("keydown", handleEscape);
 
     return () => {
-      document.removeEventListener("pointerdown", handleOutsideClick);
+      document.removeEventListener(
+        "pointerdown",
+        handleOutsideClick,
+      );
       document.removeEventListener("keydown", handleEscape);
     };
   }, [isMethodOpen]);
 
-const chooseRecipientMethod = (method: RecipientMethod) => {
-  setIsMethodOpen(false);
-  handleRecipientMethodChange(method);
-  methodTriggerRef.current?.focus();
-};
+  const chooseRecipientMethod = (method: RecipientMethod) => {
+    setIsMethodOpen(false);
+    handleRecipientMethodChange(method);
+    methodTriggerRef.current?.focus();
+  };
 
-const handleMethodKeyDown = (
-  event: KeyboardEvent<HTMLButtonElement>,
-) => {
-  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-    event.preventDefault();
+  const handleMethodKeyDown = (
+    event: KeyboardEvent<HTMLButtonElement>,
+  ) => {
+    if (
+      event.key === "ArrowDown" ||
+      event.key === "ArrowUp"
+    ) {
+      event.preventDefault();
 
-    if (!isMethodOpen) {
-      const currentIndex = recipientMethods.findIndex(
-        (method) => method.value === recipientMethod,
+      if (!isMethodOpen) {
+        const currentIndex = recipientMethods.findIndex(
+          (method) => method.value === recipientMethod,
+        );
+
+        setActiveMethodIndex(Math.max(0, currentIndex));
+        setIsMethodOpen(true);
+        return;
+      }
+
+      setActiveMethodIndex((current) =>
+        event.key === "ArrowDown"
+          ? (current + 1) % recipientMethods.length
+          : (current - 1 + recipientMethods.length) %
+            recipientMethods.length,
       );
-
-      setActiveMethodIndex(Math.max(0, currentIndex));
-      setIsMethodOpen(true);
-      return;
     }
 
-    setActiveMethodIndex((current) =>
-      event.key === "ArrowDown"
-        ? (current + 1) % recipientMethods.length
-        : (current - 1 + recipientMethods.length) %
-          recipientMethods.length,
-    );
-  }
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
 
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
+      if (isMethodOpen) {
+        const method = recipientMethods[activeMethodIndex];
 
-    if (isMethodOpen) {
-      const method = recipientMethods[activeMethodIndex];
+        if (method) chooseRecipientMethod(method.value);
+      } else {
+        const currentIndex = recipientMethods.findIndex(
+          (method) => method.value === recipientMethod,
+        );
 
-      if (method) chooseRecipientMethod(method.value);
-    } else {
-      const currentIndex = recipientMethods.findIndex(
-        (method) => method.value === recipientMethod,
-      );
-
-      setActiveMethodIndex(Math.max(0, currentIndex));
-      setIsMethodOpen(true);
+        setActiveMethodIndex(Math.max(0, currentIndex));
+        setIsMethodOpen(true);
+      }
     }
-  }
-};
+  };
 
   const availableCards = useMemo(
     () =>
@@ -284,7 +314,6 @@ const handleMethodKeyDown = (
     setToCardId("");
     setRecipientLookup(null);
     setLookupError("");
-    setSuccess("");
   }, [fromCardId]);
 
   const resetRecipient = () => {
@@ -292,7 +321,6 @@ const handleMethodKeyDown = (
     setLookupError("");
     setToCardId("");
     setAnyCard(false);
-    setSuccess("");
   };
 
   const handleTransferTypeChange = (type: TransferType) => {
@@ -302,7 +330,6 @@ const handleMethodKeyDown = (
     setRecipientLookup(null);
     setLookupError("");
     setAnyCard(false);
-    setSuccess("");
   };
 
   const handleRecipientMethodChange = (
@@ -315,7 +342,6 @@ const handleMethodKeyDown = (
 
   const handleLookup = async () => {
     setLookupError("");
-    setSuccess("");
     setRecipientLookup(null);
     setToCardId("");
     setAnyCard(false);
@@ -350,7 +376,8 @@ const handleMethodKeyDown = (
 
       if (!result.found || !result.recipient) {
         setLookupError(
-          result.message ?? "No verified recipient account was found.",
+          result.message ??
+            "No verified recipient account was found.",
         );
         return;
       }
@@ -363,10 +390,7 @@ const handleMethodKeyDown = (
         return;
       }
 
-      if (
-        result.matchedCardId &&
-        result.cards.some((card) => card.id === result.matchedCardId)
-      ) {
+      if (result.matchedCardId && result.cards.some((card) => card.id === result.matchedCardId)) {
         setToCardId(result.matchedCardId);
       }
     } catch (error) {
@@ -382,43 +406,33 @@ const handleMethodKeyDown = (
     }
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault();
-    setSuccess("");
 
     if (!selectedCard || parsedAmount === null || amountError) {
       return;
     }
 
     if (transferType === "own") {
-      if (
-        !toCardId ||
-        toCardId === fromCardId ||
-        !ownDestinationCards.some((card) => card.id === toCardId)
-      ) {
+      if (!toCardId || toCardId === fromCardId || !ownDestinationCards.some((card) => card.id === toCardId)) {
         return;
       }
     } else {
-      if (
-        !recipientLookup?.found ||
-        !recipientLookup.recipient ||
-        recipientLookup.cards.length === 0
-      ) {
+      if (!recipientLookup?.found || !recipientLookup.recipient || recipientLookup.cards.length === 0) {
         setLookupError("Find and verify the recipient before sending.");
         return;
       }
 
-      if (
-        !anyCard &&
-        !recipientLookup.cards.some((card) => card.id === toCardId)
-      ) {
+      if (!anyCard && !recipientLookup.cards.some((card) => card.id === toCardId)) {
         setLookupError("Choose a recipient card or enable automatic selection.");
         return;
       }
     }
 
     try {
-      await dispatch(
+      const transaction = await dispatch(
         createTransactionThunk(
           transferType === "own"
             ? {
@@ -439,8 +453,37 @@ const handleMethodKeyDown = (
         ),
       ).unwrap();
 
+      const isOwnTransfer = transferType === "own";
+
+      const destinationCard = isOwnTransfer
+        ? ownDestinationCards.find((card) => card.id === toCardId)
+        : recipientLookup?.cards.find((card) => card.id === toCardId);
+
+      const recipient = recipientLookup?.recipient;
+
+      const recipientLabel = isOwnTransfer
+        ? destinationCard?.name ?? "Your account"
+        : recipient
+          ? `${recipient.firstName} ${recipient.lastName}`.trim() ||
+            recipient.email ||
+            recipientValue.trim()
+          : recipientValue.trim();
+
+      setCompletedTransfer({
+        transaction,
+        recipientLabel,
+        destinationCardLast4: destinationCard?.last4,
+        isOwnTransfer,
+      });
+
+      setCompletedTransfer({
+        transaction,
+        recipientLabel,
+        destinationCardLast4: destinationCard?.last4,
+        isOwnTransfer,
+      });
+
       setAmount("");
-      setSuccess("Transfer completed successfully.");
 
       await Promise.all([
         dispatch(fetchCardsThunk()),
@@ -456,7 +499,7 @@ const handleMethodKeyDown = (
         setToCardId("");
       }
     } catch {
-      // The Redux slice displays the server error.
+      // Redux stores the error and the page displays it below.
     }
   };
 
@@ -476,7 +519,9 @@ const handleMethodKeyDown = (
       ? Boolean(
           toCardId &&
             toCardId !== fromCardId &&
-            ownDestinationCards.some((card) => card.id === toCardId),
+            ownDestinationCards.some(
+              (card) => card.id === toCardId,
+            ),
         )
       : Boolean(
           recipientLookup?.found &&
@@ -616,7 +661,10 @@ const handleMethodKeyDown = (
                   ref={methodTriggerRef}
                   id="recipient-method"
                   type="button"
-                  className={clsx(styles.methodTrigger, isMethodOpen ? styles.methodTriggerOpen : "")}
+                  className={clsx(
+                    styles.methodTrigger,
+                    isMethodOpen ? styles.methodTriggerOpen : "",
+                  )}
                   aria-haspopup="listbox"
                   aria-expanded={isMethodOpen}
                   aria-controls="recipient-method-options"
@@ -640,7 +688,10 @@ const handleMethodKeyDown = (
                   </span>
 
                   <svg
-                    className={clsx(styles.methodChevron, isMethodOpen ? styles.methodChevronOpen : "")}
+                    className={clsx(
+                      styles.methodChevron,
+                      isMethodOpen ? styles.methodChevronOpen : "",
+                    )}
                     width="18"
                     height="18"
                     viewBox="0 0 24 24"
@@ -671,7 +722,10 @@ const handleMethodKeyDown = (
                         role="option"
                         aria-selected={method.value === recipientMethod}
                         tabIndex={-1}
-                        className={clsx(styles.methodOption, method.value === recipientMethod ? styles.methodOptionSelected : "")}
+                        className={clsx(
+                          styles.methodOption,
+                          method.value === recipientMethod ? styles.methodOptionSelected : "",
+                        )}
                         onClick={() => chooseRecipientMethod(method.value)}
                         onMouseEnter={() => setActiveMethodIndex(index)}
                       >
@@ -726,9 +780,7 @@ const handleMethodKeyDown = (
                         ? "+1 555 123 4567"
                         : "16-digit card number"
                   }
-                  autoComplete={
-                    recipientMethod === "email" ? "email" : "off"
-                  }
+                  autoComplete={recipientMethod === "email" ? "email" : "off"}
                   disabled={loading || lookupLoading}
                 />
 
@@ -751,12 +803,8 @@ const handleMethodKeyDown = (
                 <div className={styles.recipientPanel}>
                   <div className={styles.recipientIdentity}>
                     <div className={styles.avatar} aria-hidden="true">
-                      {recipientLookup.recipient.firstName
-                        .charAt(0)
-                        .toUpperCase()}
-                      {recipientLookup.recipient.lastName
-                        .charAt(0)
-                        .toUpperCase()}
+                      {recipientLookup.recipient.firstName.charAt(0).toUpperCase()}
+                      {recipientLookup.recipient.lastName.charAt(0).toUpperCase()}
                     </div>
 
                     <div className={styles.recipientDetails}>
@@ -782,18 +830,18 @@ const handleMethodKeyDown = (
                           <button
                             key={card.id}
                             type="button"
-                            className={
-                              !anyCard && toCardId === card.id
-                                ? `${styles.recipientCard} ${styles.recipientCardSelected}`
+                            className={!anyCard && toCardId === card.id
+                                ? clsx(styles.recipientCard, styles.recipientCardSelected)
                                 : styles.recipientCard
                             }
                             onClick={() => {
                               setToCardId(card.id);
                               setAnyCard(false);
-                              setSuccess("");
                             }}
                             disabled={loading}
-                            aria-pressed={!anyCard && toCardId === card.id}
+                            aria-pressed={
+                              !anyCard && toCardId === card.id
+                            }
                           >
                             <span
                               className={styles.recipientCardIcon}
@@ -809,7 +857,10 @@ const handleMethodKeyDown = (
                               </span>
                             </span>
 
-                            <span className={styles.radioMark} aria-hidden="true">
+                            <span
+                              className={styles.radioMark}
+                              aria-hidden="true"
+                            >
                               {!anyCard && toCardId === card.id ? "✓" : ""}
                             </span>
                           </button>
@@ -824,12 +875,13 @@ const handleMethodKeyDown = (
                             const checked = event.target.checked;
                             setAnyCard(checked);
                             if (checked) setToCardId("");
-                            setSuccess("");
                           }}
                           disabled={loading}
                         />
                         <span>
-                          <strong>Transfer to any available card</strong>
+                          <strong>
+                            Transfer to any available card
+                          </strong>
                           <small>
                             Betta Bank will select a compatible card automatically.
                           </small>
@@ -850,13 +902,12 @@ const handleMethodKeyDown = (
 
           <section className={styles.section}>
             <div className={styles.sectionHeading}>
-              <span className={styles.step}>
-                {transferType === "own" ? "3" : "3"}
-              </span>
+              <span className={styles.step}>3</span>
               <div>
                 <h2 className={styles.sectionTitle}>Amount</h2>
                 <p className={styles.sectionDescription}>
-                  Enter the amount in {selectedCard?.currency ?? "your card's currency"}.
+                  Enter the amount in{" "}
+                  {selectedCard?.currency ?? "your card's currency"}.
                 </p>
               </div>
             </div>
@@ -874,16 +925,11 @@ const handleMethodKeyDown = (
                 placeholder="0,00"
                 value={amount}
                 onChange={(event) => {
-                  const sanitizedValue = sanitizeAmountInput(
-                    event.target.value,
-                  );
+                  const sanitizedValue = sanitizeAmountInput(event.target.value);
 
                   setAmount(formatAmountInput(sanitizedValue));
-                  setSuccess("");
                 }}
-                onBlur={() => {
-                  setAmount(formatAmountInput(sanitizeAmountInput(amount)));
-                }}
+                onBlur={() => setAmount(formatAmountInput(sanitizeAmountInput(amount)))}
                 disabled={loading}
                 autoComplete="off"
                 aria-describedby="amount-help"
@@ -916,12 +962,6 @@ const handleMethodKeyDown = (
             </p>
           )}
 
-          {success && (
-            <p className={styles.success} role="status">
-              {success}
-            </p>
-          )}
-
           <button
             type="submit"
             className={styles.submitButton}
@@ -936,6 +976,16 @@ const handleMethodKeyDown = (
           </p>
         </form>
       </section>
+
+      {completedTransfer && (
+        <TransferSuccessModal
+          transaction={completedTransfer.transaction}
+          recipientLabel={completedTransfer.recipientLabel}
+          destinationCardLast4={completedTransfer.destinationCardLast4}
+          isOwnTransfer={completedTransfer.isOwnTransfer}
+          onClose={() => setCompletedTransfer(null)}
+        />
+      )}
     </main>
   );
 }
