@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const TransactionSchema = new mongoose.Schema(
@@ -5,7 +6,9 @@ const TransactionSchema = new mongoose.Schema(
     from: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: function (this: { type: string }) {
+        return this.type === "transfer";
+      },
     },
 
     to: {
@@ -17,7 +20,9 @@ const TransactionSchema = new mongoose.Schema(
     fromCard: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Card",
-      required: true,
+      required: function (this: { type: string }) {
+        return this.type === "transfer";
+      },
     },
 
     toCard: {
@@ -40,8 +45,9 @@ const TransactionSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["transfer"],
+      enum: ["transfer", "test_top_up"],
       default: "transfer",
+      required: true,
     },
   },
   {

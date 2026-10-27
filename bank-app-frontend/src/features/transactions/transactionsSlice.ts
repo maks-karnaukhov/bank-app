@@ -6,6 +6,7 @@ import {
 import {
   fetchTransactions,
   createTransaction,
+  createTestTopUp,
   type CreateTransferData,
 } from "@/services/api";
 
@@ -17,11 +18,14 @@ interface TransactionsState {
   error: string | null;
 }
 
-const initialState: TransactionsState = {
-  transactions: [],
-  loading: false,
-  error: null,
-};
+interface TestTopUpResponse {
+  success: boolean;
+  amount: number;
+  currency: string;
+  totalBalanceBefore: number;
+  totalBalanceAfter: number;
+  retryAt: string;
+}
 
 interface ApiError {
   response?: {
@@ -31,6 +35,25 @@ interface ApiError {
   };
   message?: string;
 }
+
+const initialState: TransactionsState = {
+  transactions: [],
+  loading: false,
+  error: null,
+};
+
+const getErrorMessage = (
+  error: unknown,
+  fallback: string,
+): string => {
+  const apiError = error as ApiError;
+
+  return (
+    apiError.response?.data?.message ??
+    apiError.message ??
+    fallback
+  );
+};
 
 export const fetchTransactionsThunk = createAsyncThunk<
   Transactions[],
@@ -43,12 +66,8 @@ export const fetchTransactionsThunk = createAsyncThunk<
       const response = await fetchTransactions();
       return response.data;
     } catch (error) {
-      const apiError = error as ApiError;
-
       return rejectWithValue(
-        apiError.response?.data?.message ??
-          apiError.message ??
-          "Failed to load transactions",
+        getErrorMessage(error, "Failed to load transactions"),
       );
     }
   },
@@ -63,14 +82,32 @@ export const createTransactionThunk = createAsyncThunk<
   async (data, { rejectWithValue }) => {
     try {
       const response = await createTransaction(data);
-      return response.data.transaction;
-    } catch (error) {
-      const apiError = error as ApiError;
 
+      return {
+        ...response.data.transaction,
+        type: "transfer",
+      };
+    } catch (error) {
       return rejectWithValue(
-        apiError.response?.data?.message ??
-          apiError.message ??
-          "Failed to complete transfer",
+        getErrorMessage(error, "Failed to complete transfer"),
+      );
+    }
+  },
+);
+
+export const createTestTopUpThunk = createAsyncThunk<
+  TestTopUpResponse,
+  void,
+  { rejectValue: string }
+>(
+  "transactions/createTestTopUp",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await createTestTopUp();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        getErrorMessage(error, "Failed to top up test balance"),
       );
     }
   },
@@ -104,9 +141,7 @@ const transactionsSlice = createSlice({
       .addCase(createTransactionThunk.fulfilled, (state, action) => {
         state.loading = false;
 
-        const alreadyExists = state.transactions.some(
-          (transaction) => transaction.id === action.payload.id,
-        );
+        const alreadyExists = state.transactions.some((transaction) => transaction.id === action.payload.id);
 
         if (!alreadyExists) {
           state.transactions.unshift(action.payload);
@@ -118,6 +153,20 @@ const transactionsSlice = createSlice({
           action.payload ??
           action.error.message ??
           "Failed to complete transfer";
+      })
+      .addCase(createTestTopUpThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createTestTopUpThunk.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(createTestTopUpThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.payload ??
+          action.error.message ??
+          "Failed to top up test balance";
       });
   },
 });

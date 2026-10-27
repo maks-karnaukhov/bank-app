@@ -17,10 +17,7 @@ export const getTransactions = async (
     }
 
     const transactions = await Transaction.find({
-      $or: [
-        { from: userId },
-        { to: userId },
-      ],
+      $or: [{ from: userId }, { to: userId }],
     })
       .sort({ createdAt: -1 })
       .populate("from", "email firstName lastName")
@@ -30,32 +27,40 @@ export const getTransactions = async (
       .lean();
 
     const result = transactions.map((transaction: any) => {
-      const senderId = String(
-        transaction.from?._id ?? transaction.from,
-      );
+      const type = transaction.type ?? "transfer";
 
-      const recipientId = String(
-        transaction.to?._id ?? transaction.to,
-      );
+      const senderId = transaction.from?._id
+        ? String(transaction.from._id)
+        : transaction.from
+          ? String(transaction.from)
+          : "";
 
-      const isOutgoing = senderId === userId;
+      const recipientId = transaction.to?._id
+        ? String(transaction.to._id)
+        : transaction.to
+          ? String(transaction.to)
+          : "";
+
+      const isTestTopUp = type === "test_top_up";
+      const isOutgoing = !isTestTopUp && senderId === userId;
 
       return {
         id: String(transaction._id),
-        from: transaction.from?.email ?? senderId,
+        type,
+        from: isTestTopUp ? "Test Balance Top-Up" : transaction.from?.email ?? senderId,
         to: transaction.to?.email ?? recipientId,
         amount: transaction.amount,
         currency: transaction.currency ?? "USD",
         date: transaction.createdAt ? new Date(transaction.createdAt).toISOString() : "",
         direction: isOutgoing ? "outgoing" : "incoming",
-        fromCard: transaction.fromCard ? `${transaction.fromCard.name} •••• ${transaction.fromCard.last4}` : "",
-        toCard: transaction.toCard ? `${transaction.toCard.name} •••• ${transaction.toCard.last4}` : "",
+        fromCard: transaction.fromCard ? `${transaction.fromCard.name} **** ${transaction.fromCard.last4}` : "",
+        toCard: transaction.toCard ? `${transaction.toCard.name} **** ${transaction.toCard.last4}` : "",
       };
     });
 
     return res.status(200).json(result);
   } catch (error) {
-    console.error("Get transactions error:", error);
+    console.error("Failed to load transactions:", error);
 
     return res.status(500).json({
       message: "Failed to load transactions",

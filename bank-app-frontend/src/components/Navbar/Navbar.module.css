@@ -237,6 +237,49 @@
     padding: 2px;
 }
 
+
+.topUpButton {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.topUpButton:hover:not(:disabled) {
+    background: var(--surface-secondary);
+}
+
+.topUpButton:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.topUpButton:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+}
+
+.topUpMessage {
+    margin: 6px 8px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.topUpSuccess {
+    color: var(--foreground);
+    background: var(--surface-secondary);
+}
+
+.topUpError {
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.08);
+}
+
 @keyframes menuAppear {
     from {
         opacity: 0;

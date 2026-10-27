@@ -1,5 +1,6 @@
 export interface Transactions {
   id: string;
+  type: "transfer" | "test_top_up";
   from: string;
   to: string;
   amount: number;

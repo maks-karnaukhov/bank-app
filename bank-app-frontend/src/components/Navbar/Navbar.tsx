@@ -7,6 +7,8 @@ import {
 } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "@/store/store";
 
 import styles from "./Navbar.module.css";
 
@@ -15,6 +17,10 @@ import Logo from "../Logo/Logo";
 
 import type { User } from "@/types/types";
 import Image from "next/image";
+
+import { createTestTopUpThunk, fetchTransactionsThunk } from "@/features/transactions/transactionsSlice";
+import { fetchCardsThunk } from "@/features/cards/cardsSlice";
+import clsx from "clsx";
 
 const navigation = [
     {
@@ -48,11 +54,7 @@ function getInitialTheme(): Theme {
         return savedTheme;
     }
 
-    return window.matchMedia(
-        "(prefers-color-scheme: dark)"
-    ).matches
-        ? "dark"
-        : "light";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 export default function Navbar({
@@ -60,19 +62,26 @@ export default function Navbar({
 }: NavbarProps) {
     const pathname = usePathname();
     const menuRef = useRef<HTMLDivElement>(null);
+    const dispatch = useDispatch<AppDispatch>();
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [theme, setTheme] = useState<Theme>(getInitialTheme);
+    const [isTopUpLoading, setIsTopUpLoading] = useState(false);
+    const [topUpMessage, setTopUpMessage] = useState<{
+        text: string;
+        type: "success" | "error";
+    } | null>(null);
 
     useEffect(() => {
         document.documentElement.dataset.theme = theme;
     }, [theme]);
 
     useEffect(() => {
-        const handlePointerDown = (
-            event: MouseEvent
-        ) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        const handlePointerDown = (event: MouseEvent) => {
+            if (
+                menuRef.current &&
+                !menuRef.current.contains(event.target as Node)
+            ) {
                 setIsMenuOpen(false);
             }
         };
@@ -99,6 +108,36 @@ export default function Navbar({
 
         document.documentElement.dataset.theme = nextTheme;
         localStorage.setItem("theme", nextTheme);
+    };
+
+    const handleTestTopUp = async () => {
+        if (isTopUpLoading) {
+            return;
+        }
+
+        setIsTopUpLoading(true);
+        setTopUpMessage(null);
+
+        try {
+            const result = await dispatch(createTestTopUpThunk()).unwrap();
+
+            await Promise.all([
+                dispatch(fetchCardsThunk()),
+                dispatch(fetchTransactionsThunk()),
+            ]);
+
+            setTopUpMessage({
+                type: "success",
+                text: `Balance topped up by $${result.amount.toFixed(2)}. New total: $${result.totalBalanceAfter.toFixed(2)}.`,
+            });
+        } catch (error) {
+            setTopUpMessage({
+                type: "error",
+                text: typeof error === "string" ? error : "Failed to top up test balance. Please try again.",
+            });
+        } finally {
+            setIsTopUpLoading(false);
+        }
     };
 
     const firstName = user?.firstName ?? "";
@@ -197,64 +236,71 @@ export default function Navbar({
                                     )}
                                 </div>
                             </div>
+
                             <div className={styles.menuDivider} />
+
                             <Link
                                 href="/profile"
                                 className={styles.menuItem}
                                 role="menuitem"
                                 onClick={() => setIsMenuOpen(false)}
                             >
-                                <span
-                                    className={styles.menuIcon}
-                                    aria-hidden="true"
-                                >
-                                    ♙
-                                </span>
-
+                                <span className={styles.menuIcon} aria-hidden="true">♙</span>
                                 <span>My Profile</span>
                             </Link>
+
                             <Link
                                 href="/settings"
                                 className={styles.menuItem}
                                 role="menuitem"
                                 onClick={() => setIsMenuOpen(false)}
                             >
-                                <span
-                                    className={styles.menuIcon}
-                                    aria-hidden="true"
-                                >
-                                    ⚙
-                                </span>
-
+                                <span className={styles.menuIcon} aria-hidden="true">⚙</span>
                                 <span>Settings</span>
                             </Link>
+
                             <Link
                                 href="/loans/calculator"
                                 className={styles.menuItem}
                                 role="menuitem"
                                 onClick={() => setIsMenuOpen(false)}
                             >
-                                <span
-                                    className={styles.menuIcon}
-                                    aria-hidden="true"
-                                >
-                                    $
-                                </span>
-
+                                <span className={styles.menuIcon} aria-hidden="true">$</span>
                                 <span>Get a Loan</span>
                             </Link>
-                            <div className={styles.menuDivider} />
-                            <div className={styles.themeRow}>
-                                <span
-                                    className={styles.menuIcon}
-                                    aria-hidden="true"
+
+                            <button
+                                type="button"
+                                className={`${styles.menuItem} ${styles.topUpButton}`}
+                                role="menuitem"
+                                onClick={handleTestTopUp}
+                                disabled={isTopUpLoading}
+                            >
+                                <span className={styles.menuIcon} aria-hidden="true">＋</span>
+                                <span>
+                                    {isTopUpLoading ? "Topping Up..." : "Test Balance Top-Up"}
+                                </span>
+                            </button>
+
+                            {topUpMessage && (
+                                <p
+                                    className={clsx(styles.topUpMessage, 
+                                        topUpMessage.type === "success" ? styles.topUpSuccess : styles.topUpError
+                                    )}
+                                    role="status"
                                 >
+                                    {topUpMessage.text}
+                                </p>
+                            )}
+
+                            <div className={styles.menuDivider} />
+
+                            <div className={styles.themeRow}>
+                                <span className={styles.menuIcon} aria-hidden="true">
                                     {theme === "light" ? "☀" : "☾"}
                                 </span>
 
-                                <span className={styles.themeLabel}>
-                                    Appearance
-                                </span>
+                                <span className={styles.themeLabel}>Appearance</span>
 
                                 <button
                                     type="button"

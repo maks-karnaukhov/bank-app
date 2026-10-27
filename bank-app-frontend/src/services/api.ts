@@ -1,5 +1,20 @@
 import axios from "axios";
 
+export type RecipientMethod = "email" | "phone" | "card";
+export type TransferType = "own" | "recipient";
+
+export interface TransferRecipientCard {
+  id: string;
+  name: string;
+  type: "DEBIT" | "CREDIT";
+  currency: string;
+  last4: string;
+  color: string;
+  network: "VISA" | "MASTERCARD" | "MIR" | "AMEX";
+  isVirtual: boolean;
+  createdAt: string;
+}
+
 export interface TransferRecipientLookup {
   found: boolean;
   recipient: {
@@ -58,20 +73,15 @@ export const registerUser = (data: {
 export const fetchTransactions = () =>
   api.get("/transactions");
 
-export type RecipientMethod = "email" | "phone" | "card";
-export type TransferType = "own" | "recipient";
-
-export interface TransferRecipientCard {
-  id: string;
-  name: string;
-  type: "DEBIT" | "CREDIT";
-  currency: string;
-  last4: string;
-  color: string;
-  network: "VISA" | "MASTERCARD" | "MIR" | "AMEX";
-  isVirtual: boolean;
-  createdAt: string;
-}
+export const createTestTopUp = () =>
+  api.post<{
+    success: boolean;
+    amount: number;
+    currency: string;
+    totalBalanceBefore: number;
+    totalBalanceAfter: number;
+    retryAt: string;
+  }>("/transactions/test-top-up");
 
 export const lookupTransferRecipient = (params: {
   method: RecipientMethod;
