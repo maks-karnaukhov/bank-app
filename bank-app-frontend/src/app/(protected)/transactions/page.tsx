@@ -1,5 +1,6 @@
 "use client";
 
+import { jsPDF } from "jspdf";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -224,6 +225,138 @@ export default function TransactionsPage() {
             setCustomStart((current) => current || toDateInputValue(new Date(now.getFullYear(), now.getMonth(), 1)));
             setCustomEnd((current) => current || toDateInputValue(now));
         }
+    };
+
+    const handleDownloadReceipt = () => {
+        if (!selectedTransaction) {
+            return;
+        }
+
+        const transaction = selectedTransaction;
+        const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 20;
+        const contentWidth = pageWidth - margin * 2;
+        const isTopUp = transaction.type === "test_top_up";
+        const isIncoming = isTopUp || transaction.direction === "incoming";
+        const transactionDate = new Date(transaction.date);
+
+        const amount = `${isIncoming ? "+" : "-"}${formatMoney(
+            transaction.amount,
+            transaction.currency,
+        )}`;
+
+        const addDetail = (label: string, value: string) => {
+            const labelX = margin;
+            const valueX = margin + 48;
+            const maxValueWidth = contentWidth - 48;
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.setTextColor(100, 116, 139);
+            doc.text(label, labelX, y);
+
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(30, 41, 59);
+
+            const lines = doc.splitTextToSize(value || "-", maxValueWidth);
+            doc.text(lines, valueX, y);
+
+            y += Math.max(9, lines.length * 5 + 3);
+
+            doc.setDrawColor(226, 232, 240);
+            doc.line(margin, y - 3, pageWidth - margin, y - 3);
+        };
+
+        let y = 0;
+
+        // Header
+        doc.setFillColor(22, 54, 95);
+        doc.roundedRect(margin, 18, contentWidth, 32, 3, 3, "F");
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(19);
+        doc.text("BETTA BANK", margin + 8, 31);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.text("TRANSACTION RECEIPT", margin + 8, 41);
+
+        // Transaction amount
+        y = 65;
+
+        doc.setTextColor(100, 116, 139);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.text("Transaction amount", margin, y);
+
+        y += 13;
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(25);
+        doc.setTextColor(
+            isIncoming ? 22 : 220,
+            isIncoming ? 163 : 83,
+            isIncoming ? 106 : 83,
+        );
+        doc.text(amount, margin, y);
+
+        y += 9;
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(100, 116, 139);
+        doc.text(
+            `${formatDate(transactionDate)} at ${formatTime(transactionDate)}`,
+            margin,
+            y,
+        );
+
+        y += 17;
+
+        // Transaction details
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(30, 41, 59);
+        doc.text("Transaction details", margin, y);
+
+        y += 10;
+
+        addDetail("Transaction ID", transaction.id);
+        addDetail("Type", isTopUp ? "Test Balance Top-Up" : "Transfer");
+        addDetail(
+            "Direction",
+            isTopUp ? "Test balance top-up" : isIncoming ? "Incoming" : "Outgoing",
+        );
+        addDetail("From", transaction.from || "-");
+        addDetail("To", transaction.to || "-");
+
+        if (transaction.fromCard) {
+            addDetail("Sender card", transaction.fromCard);
+        }
+
+        if (transaction.toCard) {
+            addDetail("Recipient card", transaction.toCard);
+        }
+
+        // Footer
+        y += 8;
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+
+        const footerText = isTopUp
+            ? "This document records a test balance top-up in the Betta Bank demo application. It is not proof of a real bank transfer."
+            : "This document records a transaction in the Betta Bank demo application. It is not a bank-issued statement.";
+
+        const footerLines = doc.splitTextToSize(footerText, contentWidth);
+        doc.text(footerLines, margin, Math.min(y, 265));
+
+        const safeId = transaction.id.replace(/[^a-zA-Z0-9_-]/g, "-");
+        doc.save(`betta-bank-receipt-${safeId}.pdf`);
     };
 
     const handleModalKeyDown = (
@@ -615,6 +748,29 @@ export default function TransactionsPage() {
                                 </div>
                             )}
                         </div>
+
+                        <button
+                            type="button"
+                            className={styles.downloadReceiptButton}
+                            onClick={handleDownloadReceipt}
+                        >
+                            <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"
+                                    stroke="currentColor"
+                                    strokeWidth="1.8"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                            Download PDF receipt
+                        </button>
 
                         <button
                             type="button"

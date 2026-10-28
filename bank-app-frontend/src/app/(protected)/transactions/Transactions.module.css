@@ -556,6 +556,41 @@
     outline-offset: 2px;
 }
 
+.downloadReceiptButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 16px;
+    color: var(--foreground);
+    background: var(--surface-secondary);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 650;
+    cursor: pointer;
+    transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease;
+}
+
+.downloadReceiptButton:hover {
+    background: var(--background);
+    border-color: var(--primary);
+}
+
+.downloadReceiptButton:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.downloadReceiptButton svg {
+    flex-shrink: 0;
+}
+
 @keyframes periodMenuAppear {
     from {
         opacity: 0;
@@ -581,6 +616,10 @@
 
     .periodOptions {
         animation: none;
+    }
+
+    .downloadReceiptButton {
+        transition: none;
     }
 }
 
