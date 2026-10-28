@@ -1,0 +1,571 @@
+.page {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 36px 32px 56px;
+    color: var(--foreground);
+}
+
+.pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+}
+
+.pageHeader h1 {
+    margin: 6px 0 8px;
+    font-size: clamp(28px, 4vw, 36px);
+    font-weight: 750;
+    letter-spacing: -1px;
+}
+
+.eyebrow {
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+}
+
+.subtitle {
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.statistics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.statCard {
+    min-width: 0;
+    padding: 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.025);
+}
+
+.statHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.statIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    background: var(--surface-secondary);
+    font-size: 20px;
+}
+
+.statLabel {
+    color: var(--muted-foreground);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.statAmount {
+    margin: 0 0 8px;
+    font-size: clamp(23px, 2.4vw, 30px);
+    font-weight: 750;
+    letter-spacing: -0.8px;
+    overflow-wrap: anywhere;
+}
+
+.income {
+    color: #16a36a;
+}
+
+.expense {
+    color: #dc5353;
+}
+
+.statHint {
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.historyCard {
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.025);
+}
+
+.historyHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.historyHeader h2 {
+    margin: 0 0 7px;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+}
+
+.selectLabel,
+.customRange label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.selectLabel > span,
+.customRange label > span {
+    color: var(--muted-foreground);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.selectLabel select,
+.customRange input {
+    min-height: 42px;
+    padding: 0 12px;
+    color: var(--foreground);
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font: inherit;
+    font-size: 13px;
+}
+
+.selectLabel select:focus,
+.customRange input:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.customRange {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 16px;
+    margin-bottom: 22px;
+    background: var(--surface-secondary);
+    border-radius: 12px;
+}
+
+.customRange label {
+    min-width: 180px;
+}
+
+.errorMessage {
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    color: #dc5353;
+    background: rgba(220, 83, 83, 0.08);
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+.stateMessage {
+    padding: 48px 16px;
+    color: var(--muted-foreground);
+    text-align: center;
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 54px 20px;
+    text-align: center;
+}
+
+.emptyIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 16px;
+    color: var(--muted-foreground);
+    background: var(--surface-secondary);
+    border-radius: 18px;
+    font-size: 28px;
+}
+
+.emptyState h3 {
+    margin: 0 0 8px;
+    font-size: 17px;
+}
+
+.emptyState p {
+    max-width: 360px;
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.transactionGroups {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.dateGroup {
+    min-width: 0;
+}
+
+.dateHeading {
+    padding-bottom: 12px;
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.transactionList {
+    display: flex;
+    flex-direction: column;
+}
+
+.transactionRow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    min-width: 0;
+    padding: 15px 8px;
+    color: var(--foreground);
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-top: 1px solid var(--border);
+    cursor: pointer;
+    font: inherit;
+    transition: background-color 0.18s ease;
+}
+
+.transactionRow:last-child {
+    border-bottom: 1px solid var(--border);
+}
+
+.transactionRow:hover {
+    background: var(--surface-secondary);
+}
+
+.transactionRow:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+    border-radius: 8px;
+}
+
+.transactionIcon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.incomingIcon {
+    color: #16a36a;
+    background: rgba(22, 163, 106, 0.1);
+}
+
+.outgoingIcon {
+    color: #dc5353;
+    background: rgba(220, 83, 83, 0.1);
+}
+
+.topUpIcon {
+    color: var(--primary);
+    background: var(--surface-secondary);
+}
+
+.transactionInfo {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.transactionTitle {
+    font-size: 14px;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+.transactionDescription,
+.transactionTime {
+    color: var(--muted-foreground);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.transactionAmount {
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.48);
+    backdrop-filter: blur(4px);
+}
+
+.modal {
+    width: 100%;
+    max-width: 500px;
+    max-height: calc(100vh - 40px);
+    padding: 26px;
+    overflow-y: auto;
+    color: var(--foreground);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.2);
+    animation: modalAppear 0.18s ease-out;
+}
+
+.modalHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.modalHeader h2 {
+    margin: 8px 0 0;
+    font-size: 21px;
+    letter-spacing: -0.4px;
+}
+
+.closeButton {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    color: var(--muted-foreground);
+    background: var(--surface-secondary);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.closeButton:hover {
+    color: var(--foreground);
+}
+
+.modalAmount {
+    padding: 26px 0;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+}
+
+.modalAmount > span {
+    display: block;
+    font-size: clamp(30px, 6vw, 38px);
+    font-weight: 750;
+    letter-spacing: -1px;
+    overflow-wrap: anywhere;
+}
+
+.modalAmount p {
+    margin: 9px 0 0;
+    color: var(--muted-foreground);
+    font-size: 13px;
+}
+
+.detailList {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+}
+
+.detailRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.detailRow > span {
+    flex-shrink: 0;
+    color: var(--muted-foreground);
+    font-size: 13px;
+}
+
+.detailRow > strong {
+    max-width: 65%;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.transactionId {
+    font-family: monospace;
+    font-size: 11px;
+}
+
+.closeModalButton {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 16px;
+    color: white;
+    background: var(--primary);
+    border: none;
+    border-radius: 11px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.closeModalButton:hover {
+    filter: brightness(0.95);
+}
+
+@keyframes modalAppear {
+    from {
+        opacity: 0;
+        transform: translateY(6px) scale(0.99);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (max-width: 800px) {
+    .page {
+        padding: 28px 20px 40px;
+    }
+
+    .statistics {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .statCard:last-child {
+        grid-column: 1 / -1;
+    }
+
+    .historyCard {
+        padding: 18px;
+    }
+}
+
+@media (max-width: 520px) {
+    .page {
+        padding: 24px 14px 32px;
+    }
+
+    .statistics {
+        grid-template-columns: 1fr;
+    }
+
+    .statCard:last-child {
+        grid-column: auto;
+    }
+
+    .statCard {
+        padding: 18px;
+    }
+
+    .statHeader {
+        margin-bottom: 12px;
+    }
+
+    .historyHeader {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .selectLabel select {
+        width: 100%;
+    }
+
+    .customRange {
+        flex-direction: column;
+    }
+
+    .customRange label {
+        min-width: 0;
+    }
+
+    .transactionRow {
+        gap: 10px;
+        padding: 13px 2px;
+    }
+
+    .transactionIcon {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+    }
+
+    .transactionTitle {
+        font-size: 13px;
+    }
+
+    .transactionDescription,
+    .transactionTime {
+        font-size: 11px;
+    }
+
+    .transactionAmount {
+        font-size: 12px;
+    }
+
+    .modal {
+        padding: 20px;
+        border-radius: 18px;
+    }
+
+    .detailRow {
+        gap: 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .transactionRow {
+        transition: none;
+    }
+
+    .modal {
+        animation: none;
+    }
+}
