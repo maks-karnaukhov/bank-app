@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import type { AppDispatch, RootState } from "@/store/store";
@@ -102,12 +102,36 @@ export default function TransactionsPage() {
     const [period, setPeriod] = useState<Period>("this-month");
     const [customStart, setCustomStart] = useState("");
     const [customEnd, setCustomEnd] = useState("");
-    const [selectedTransaction, setSelectedTransaction] =
-        useState<Transactions | null>(null);
+    const [selectedTransaction, setSelectedTransaction] = useState<Transactions | null>(null);
+    const [isPeriodMenuOpen, setIsPeriodMenuOpen] = useState(false);
+    const periodMenuRef = useRef<HTMLDivElement>(null);
+
+    const periodOptions: { value: Period; label: string }[] = [
+        { value: "this-month", label: "This month" },
+        { value: "last-month", label: "Last month" },
+        { value: "all-time", label: "All time" },
+        { value: "custom", label: "Custom range" },
+    ];
+
+    const selectedPeriodLabel = periodOptions.find((option) => option.value === period)?.label ?? "This month";
 
     useEffect(() => {
         void dispatch(fetchTransactionsThunk());
     }, [dispatch]);
+
+    useEffect(() => {
+        const handleOutsideClick = (event: MouseEvent) => {
+            if (periodMenuRef.current && !periodMenuRef.current.contains(event.target as Node)) {
+                setIsPeriodMenuOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleOutsideClick);
+
+        return () => {
+            document.removeEventListener("mousedown", handleOutsideClick);
+        };
+    }, []);
 
     const filteredTransactions = useMemo(() => {
         let start: Date | null = null;
@@ -278,18 +302,101 @@ export default function TransactionsPage() {
                     </div>
 
                     <div className={styles.periodControls}>
-                        <label className={styles.selectLabel}>
+                        <div className={styles.selectLabel}>
                             <span>Period</span>
-                            <select
-                                value={period}
-                                onChange={(event) => handlePeriodChange(event.target.value as Period)}
-                            >
-                                <option value="this-month">This month</option>
-                                <option value="last-month">Last month</option>
-                                <option value="all-time">All time</option>
-                                <option value="custom">Custom range</option>
-                            </select>
-                        </label>
+
+                            <div className={styles.periodSelect} ref={periodMenuRef}>
+                                <button
+                                    type="button"
+                                    className={clsx(styles.periodTrigger, 
+                                        isPeriodMenuOpen ? styles.periodTriggerOpen : ""
+                                    )}
+                                    aria-haspopup="listbox"
+                                    aria-expanded={isPeriodMenuOpen}
+                                    onClick={() => setIsPeriodMenuOpen((open) => !open)}
+                                    onKeyDown={(event) => {
+                                        if (event.key === "Escape") {
+                                            setIsPeriodMenuOpen(false);
+                                        }
+
+                                        if (event.key === "ArrowDown" && !isPeriodMenuOpen) {
+                                            event.preventDefault();
+                                            setIsPeriodMenuOpen(true);
+                                        }
+                                    }}
+                                >
+                                    <span>{selectedPeriodLabel}</span>
+
+                                    <svg
+                                        className={clsx(styles.periodChevron, 
+                                            isPeriodMenuOpen ? styles.periodChevronOpen : ""
+                                        )}
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            d="m7 10 5 5 5-5"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                    </svg>
+                                </button>
+
+                                {isPeriodMenuOpen && (
+                                    <div
+                                        className={styles.periodOptions}
+                                        role="listbox"
+                                        aria-label="Transaction period"
+                                        onKeyDown={(event) => {
+                                            if (event.key === "Escape") {
+                                                setIsPeriodMenuOpen(false);
+                                            }
+                                        }}
+                                    >
+                                        {periodOptions.map((option) => (
+                                            <button
+                                                key={option.value}
+                                                type="button"
+                                                role="option"
+                                                aria-selected={period === option.value}
+                                                className={clsx(styles.periodOption, 
+                                                    period === option.value ? styles.periodOptionSelected : ""
+                                                )}
+                                                onClick={() => {
+                                                    handlePeriodChange(option.value);
+                                                    setIsPeriodMenuOpen(false);
+                                                }}
+                                            >
+                                                <span>{option.label}</span>
+
+                                                {period === option.value && (
+                                                    <svg
+                                                        width="16"
+                                                        height="16"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                        aria-hidden="true"
+                                                    >
+                                                        <path
+                                                            d="m5 12 4 4L19 6"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                        />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -470,8 +577,7 @@ export default function TransactionsPage() {
                             <div className={styles.detailRow}>
                                 <span>Type</span>
                                 <strong>
-                                    {selectedTransaction.type === "test_top_up"
-                                        ? "Test Balance Top-Up" : "Transfer"}
+                                    {selectedTransaction.type === "test_top_up" ? "Test Balance Top-Up" : "Transfer"}
                                 </strong>
                             </div>
 

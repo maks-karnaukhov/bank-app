@@ -135,24 +135,6 @@
     font-weight: 600;
 }
 
-.selectLabel select,
-.customRange input {
-    min-height: 42px;
-    padding: 0 12px;
-    color: var(--foreground);
-    background: var(--background);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    font: inherit;
-    font-size: 13px;
-}
-
-.selectLabel select:focus,
-.customRange input:focus {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-}
-
 .customRange {
     display: flex;
     flex-wrap: wrap;
@@ -456,6 +438,152 @@
     filter: brightness(0.95);
 }
 
+.periodControls {
+    display: flex;
+    align-items: flex-end;
+}
+
+.periodSelect {
+    position: relative;
+    width: 190px;
+}
+
+.periodTrigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 42px;
+    padding: 0 13px;
+    color: var(--foreground);
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    text-align: left;
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.periodTrigger:hover,
+.periodTriggerOpen {
+    border-color: var(--primary);
+}
+
+.periodTrigger:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.periodChevron {
+    flex-shrink: 0;
+    color: var(--muted-foreground);
+    transition: transform 0.18s ease;
+}
+
+.periodChevronOpen {
+    transform: rotate(180deg);
+}
+
+.periodOptions {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 50;
+    width: 100%;
+    padding: 5px;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgb(0 0 0 / 12%);
+    animation: periodMenuAppear 0.14s ease-out;
+}
+
+.periodOption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    min-height: 38px;
+    padding: 9px 10px;
+    color: var(--foreground);
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    text-align: left;
+    transition: background-color 0.15s ease;
+}
+
+.periodOption:hover,
+.periodOption:focus-visible {
+    background: var(--surface-secondary);
+    outline: none;
+}
+
+.periodOptionSelected {
+    color: var(--primary);
+    background: var(--surface-secondary);
+    font-weight: 650;
+}
+
+.periodOptionSelected svg {
+    flex-shrink: 0;
+    color: var(--primary);
+}
+
+.customRange input {
+    min-height: 42px;
+    padding: 0 12px;
+    color: var(--foreground);
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font: inherit;
+    font-size: 13px;
+}
+
+.customRange input:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+@keyframes periodMenuAppear {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+:global([data-theme="dark"]) .periodOptions {
+    box-shadow: 0 12px 28px rgb(0 0 0 / 30%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .periodTrigger,
+    .periodChevron,
+    .periodOption {
+        transition: none;
+    }
+
+    .periodOptions {
+        animation: none;
+    }
+}
+
 @keyframes modalAppear {
     from {
         opacity: 0;
@@ -514,10 +642,6 @@
         gap: 16px;
     }
 
-    .selectLabel select {
-        width: 100%;
-    }
-
     .customRange {
         flex-direction: column;
     }
@@ -557,6 +681,10 @@
 
     .detailRow {
         gap: 12px;
+    }
+
+    .periodSelect {
+        width: 100%;
     }
 }
 
